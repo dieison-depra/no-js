@@ -13,7 +13,9 @@
       "signingIn": "Iniciando sesión...",
       "previewHint": "Completa ambos campos para probar la vista previa interactiva",
       "signedIn": "¡Sesión iniciada!",
-      "signOut": "Cerrar sesión"
+      "signOut": "Cerrar sesión",
+      "emailLabel": "Correo electrónico",
+      "passwordLabel": "Contraseña"
     },
     "dashboard": {
       "badge": "Intermedio",
@@ -54,7 +56,8 @@
       "errors": "Errores",
       "lastResponse": "Último tiempo de respuesta",
       "nextPoll": "Próximo poll en",
-      "refreshNote": "Se actualiza automáticamente vía <code>poll=\"5000\"</code>"
+      "refreshNote": "Se actualiza automáticamente vía <code>poll=\"5000\"</code>",
+      "onlineBadge": "En línea"
     },
     "cta": {
       "title": "¿Quieres Más Ejemplos?",

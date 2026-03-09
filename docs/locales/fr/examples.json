@@ -13,7 +13,9 @@
       "signingIn": "Connexion en cours...",
       "previewHint": "Remplissez les deux champs pour essayer l'aperçu interactif",
       "signedIn": "Connecté !",
-      "signOut": "Se déconnecter"
+      "signOut": "Se déconnecter",
+      "emailLabel": "E-mail",
+      "passwordLabel": "Mot de passe"
     },
     "dashboard": {
       "badge": "Intermédiaire",
@@ -54,7 +56,8 @@
       "errors": "Erreurs",
       "lastResponse": "Dernier temps de réponse",
       "nextPoll": "Prochain poll dans",
-      "refreshNote": "Se rafraîchit automatiquement via <code>poll=\"5000\"</code>"
+      "refreshNote": "Se rafraîchit automatiquement via <code>poll=\"5000\"</code>",
+      "onlineBadge": "En ligne"
     },
     "cta": {
       "title": "Envie de plus d'exemples ?",

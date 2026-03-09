@@ -13,7 +13,9 @@
       "signingIn": "Accesso in corso...",
       "previewHint": "Compila entrambi i campi per provare l'anteprima interattiva",
       "signedIn": "Accesso effettuato!",
-      "signOut": "Esci"
+      "signOut": "Esci",
+      "emailLabel": "E-mail",
+      "passwordLabel": "Password"
     },
     "dashboard": {
       "badge": "Intermedio",
@@ -54,7 +56,8 @@
       "errors": "Errori",
       "lastResponse": "Ultimo tempo di risposta",
       "nextPoll": "Prossimo polling tra",
-      "refreshNote": "Si aggiorna automaticamente tramite <code>poll=\"5000\"</code>"
+      "refreshNote": "Si aggiorna automaticamente tramite <code>poll=\"5000\"</code>",
+      "onlineBadge": "Online"
     },
     "cta": {
       "title": "Vuoi Altri Esempi?",

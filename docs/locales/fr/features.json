@@ -21,7 +21,10 @@
       "h1": "Rendu conditionnel avec if",
       "h2": "Rendu de listes avec each",
       "h3": "Interpolation de texte avec bind",
-      "h4": "Basculement de visibilité avec show"
+      "h4": "Basculement de visibilité avec show",
+      "item1": "Faire les courses",
+      "item2": "Sortir la poubelle",
+      "item3": "Corriger le bug"
     },
     "showcase3": {
       "badge": "Interactivité",
@@ -30,7 +33,8 @@
       "h1": "Click, submit, input et bien plus",
       "h2": "Accès direct à l'état dans les handlers",
       "h3": "Support des modificateurs d'événements",
-      "h4": "Aucune fonction wrapper nécessaire"
+      "h4": "Aucune fonction wrapper nécessaire",
+      "clickedLabel": "Cliqué :"
     },
     "grid": {
       "title": "Plus de fonctionnalités",
@@ -64,6 +68,9 @@
       "title": "Prêt à construire ?",
       "subtitle": "Commencez à utiliser No.JS en moins de 30 secondes.",
       "button": "Commencer maintenant"
+    },
+    "showcase": {
+      "previewLabel": "▶  APERÇU"
     }
   }
 }

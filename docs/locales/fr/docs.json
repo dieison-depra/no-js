@@ -186,7 +186,11 @@
         "lazyOnDemand": "Charger le template de route uniquement lors de la première visite (templates de route uniquement)",
         "routerForward": "Naviguer en avant dans l'historique",
         "routerOn": "S'abonner aux changements de route",
-        "routerCurrent": "Objet de la route courante"
+        "routerCurrent": "Objet de la route courante",
+        "i18nNs": "Dérivation automatique du namespace i18n à partir du nom de fichier de route",
+        "routeViewSrc": "Point de sortie de routage basé sur les fichiers",
+        "routeIndex": "Nom de fichier pour la racine <code>/</code> (défaut <code>\"index\"</code>)",
+        "routeExt": "Extension de fichier (défaut <code>\".tpl\"</code>, repli <code>\".html\"</code>)"
       },
       "animation": {
         "title": "Animation",
@@ -228,7 +232,8 @@
         "dragListCopy": "Copier au lieu de déplacer lors du transfert",
         "dragListRemove": "Supprimer les éléments de la source lors du transfert",
         "dragMultiple": "Lasso / sélection multiple sur les enfants",
-        "dragMultipleClass": "Classe ajoutée aux éléments sélectionnés"
+        "dragMultipleClass": "Classe ajoutée aux éléments sélectionnés",
+        "dropRejectClass": "Classe ajoutée lors du rejet du survol"
       },
       "i18n": {
         "title": "i18n",
@@ -262,7 +267,10 @@
       "state": {
         "title": "state — État local",
         "text": "Crée un contexte réactif limité à l'élément et à ses enfants.",
-        "preview": "Aperçu"
+        "preview": "Aperçu",
+        "helloLabel": "Bonjour,",
+        "countLabel": "Compteur :",
+        "resetBtn": "Réinitialiser"
       },
       "store": {
         "title": "store — Store global",
@@ -276,7 +284,11 @@
       "computed": {
         "title": "computed — État dérivé",
         "text": "Des valeurs automatiquement recalculées lorsque les dépendances changent.",
-        "preview": "Aperçu"
+        "preview": "Aperçu",
+        "priceLabel": "Prix :",
+        "qtyLabel": "Qté :",
+        "subtotalLabel": "Sous-total :",
+        "totalLabel": "Total :"
       },
       "watch": {
         "title": "watch — Effets de bord",
@@ -313,7 +325,8 @@
         "nameLabel": "Nom",
         "placeholder": "Tapez votre nom...",
         "checkbox": "J'accepte",
-        "agreedLabel": "Accepté :"
+        "agreedLabel": "Accepté :",
+        "helloPrefix": "Bonjour,"
       }
     },
     "events": {
@@ -327,7 +340,8 @@
         "text": "Liez n'importe quel événement DOM directement en HTML. Accédez à l'état et aux variables de contexte directement dans l'expression du gestionnaire.",
         "preview": "Aperçu",
         "placeholder": "Tapez quelque chose...",
-        "youTyped": "Vous avez tapé :"
+        "youTyped": "Vous avez tapé :",
+        "countLabel": "Compteur :"
       },
       "modifiers": {
         "title": "Modificateurs d'événements",
@@ -685,7 +699,8 @@
         "namePlaceholder": "Votre nom",
         "emailPlaceholder": "Votre e-mail",
         "sendButton": "Envoyer",
-        "successMessage": "Merci, {name} !"
+        "successMessage": "Merci, {name} !",
+        "thanks": "Merci,"
       }
     },
     "styling": {
@@ -753,28 +768,163 @@
         "subtitle": "Glisser-déposer, listes triables et sélection multiple déclaratifs — zéro JavaScript"
       },
       "drag": {
-        "title": "drag — Rendre un Élément Déplaçable"
+        "title": "drag — Rendre un Élément Déplaçable",
+        "preview": "Aperçu",
+        "demoText": "Glissez les fruits dans le panier :",
+        "fruitsLabel": "Fruits",
+        "basketLabel": "Panier",
+        "col1": "Attribut",
+        "col2": "Type",
+        "col3": "Défaut",
+        "col4": "Description",
+        "dragDesc": "La valeur glissée",
+        "dragTypeDesc": "Type nommé — seules les zones <code>drop-accept</code> correspondantes répondent",
+        "dragEffectDesc": "Correspond à <code>dataTransfer.effectAllowed</code>",
+        "dragHandleDesc": "Restreint la zone de saisie à un élément enfant",
+        "dragImageDesc": "Élément fantôme de glissement personnalisé",
+        "dragImageOffsetDesc": "Décalage en pixels pour l'image de glissement personnalisée",
+        "dragDisabledDesc": "Lorsque vrai, désactive le glissement",
+        "dragClassDesc": "Classe ajoutée pendant le glissement",
+        "dragGhostClassDesc": "Classe ajoutée à l'élément image de glissement",
+        "dragGroupDesc": "Nom du groupe pour la sélection multiple"
       },
       "drop": {
-        "title": "drop — Définir une Zone de Dépôt"
+        "title": "drop — Définir une Zone de Dépôt",
+        "preview": "Aperçu",
+        "demoText": "Glissez les éléments entre les zones :",
+        "zoneALabel": "Zone A",
+        "zoneBLabel": "Zone B",
+        "col1": "Attribut",
+        "col2": "Type",
+        "col3": "Défaut",
+        "col4": "Description",
+        "dropDesc": "Expression exécutée au dépôt",
+        "dropAcceptDesc": "Type(s) <code>drag-type</code> accepté(s). Utilisez <code>\"*\"</code> pour tout",
+        "dropEffectDesc": "Correspond à <code>dataTransfer.dropEffect</code>",
+        "dropClassDesc": "Classe ajoutée lorsqu'un élément valide survole",
+        "dropRejectClassDesc": "Classe ajoutée lorsque l'élément est rejeté (mauvais type ou maximum dépassé)",
+        "dropDisabledDesc": "Lorsque vrai, désactive le dépôt",
+        "dropMaxDesc": "Nombre maximum d'éléments acceptés par la zone",
+        "dropSortDesc": "Active le réordonnancement par position",
+        "dropPlaceholderDesc": "Affiche un espace réservé au point d'insertion",
+        "dropPlaceholderClassDesc": "Classe pour l'espace réservé",
+        "dropSettleClassDesc": "Classe CSS personnalisée pour l'animation de stabilisation",
+        "dropEmptyClassDesc": "Classe CSS personnalisée pour l'état vide de la zone de dépôt"
       },
       "dragList": {
-        "title": "drag-list — Liste Triable"
+        "title": "drag-list — Liste Triable",
+        "text": "Une directive de haut niveau qui combine <code>drag</code> et <code>drop</code> en une liste triable liée à un tableau d'état.",
+        "preview": "Aperçu",
+        "todoLabel": "À Faire",
+        "doneLabel": "Terminé",
+        "col1": "Attribut",
+        "col2": "Type",
+        "col3": "Défaut",
+        "col4": "Description",
+        "dragListDesc": "Chemin vers le tableau dans l'état",
+        "templateDesc": "Template pour chaque élément",
+        "dragListKeyDesc": "Clé unique par élément pour une identité stable",
+        "dragListItemDesc": "Nom de la variable de boucle dans le template",
+        "dropSortDesc": "Direction du layout",
+        "dropAcceptDesc": "Types acceptés (par défaut : même liste)",
+        "dragListCopyDesc": "Copier les éléments au lieu de les déplacer",
+        "dragListRemoveDesc": "Supprimer les éléments lorsqu'ils sont glissés",
+        "dragDisabledDesc": "Désactive le glissement depuis cette liste",
+        "dropDisabledDesc": "Désactive le dépôt dans cette liste",
+        "dropMaxDesc": "Nombre maximum d'éléments autorisés",
+        "dropSettleClassDesc": "Classe CSS personnalisée pour l'animation de stabilisation",
+        "dropEmptyClassDesc": "Classe CSS personnalisée pour l'état vide de la drag-list",
+        "dropPlaceholderDesc": "Affiche un espace réservé à l'endroit du dépôt"
       },
       "dragListEvents": {
-        "title": "Événements de Drag-List"
+        "title": "Événements de Drag-List",
+        "col1": "Événement",
+        "col3": "Description",
+        "reorderDesc": "Élément réordonné dans la même liste",
+        "receiveDesc": "Élément reçu d'une autre liste",
+        "removeDesc": "Élément supprimé (glissé hors)",
+        "preview": "Aperçu",
+        "inboxLabel": "Boîte de réception",
+        "archiveLabel": "Archives",
+        "eventLogLabel": "Journal des événements :"
       },
       "dragMultiple": {
-        "title": "drag-multiple — Sélection Multiple"
+        "title": "drag-multiple — Sélection Multiple",
+        "text": "Activez le clic pour sélectionner sur les éléments enfants, puis glissez tous les éléments sélectionnés en une fois.",
+        "preview": "Aperçu",
+        "demoText": "Cliquez pour sélectionner, <kbd>Ctrl</kbd>+clic pour multi-sélection, puis glissez vers la zone de dépôt :",
+        "availableLabel": "Disponibles",
+        "collectedLabel": "Collectés",
+        "col1": "Attribut",
+        "col2": "Défaut",
+        "col3": "Description",
+        "dragMultipleDesc": "Active le clic pour sélectionner",
+        "dragMultipleClassDesc": "Classe ajoutée aux éléments sélectionnés",
+        "dragGroupDesc": "Nom du groupe — tous les éléments sélectionnés se déplacent ensemble",
+        "selectionTitle": "Comportement de sélection :",
+        "selCol1": "Action",
+        "selCol2": "Résultat",
+        "selClick": "Clic",
+        "selClickResult": "Sélectionne un seul élément (remplace le précédent)",
+        "selCtrlClick": "Ctrl/Cmd + Clic",
+        "selCtrlClickResult": "Ajoute à la sélection",
+        "selEscape": "Échap",
+        "selEscapeResult": "Efface toutes les sélections",
+        "selDrag": "Glisser un élément sélectionné",
+        "selDragResult": "<code>$drag</code> devient un tableau de tous les éléments sélectionnés"
       },
       "implicitVars": {
-        "title": "Variables Implicites"
+        "title": "Variables Implicites",
+        "text": "Ces variables sont disponibles dans les expressions <code>drop</code> et les gestionnaires <code>on:drop</code> :",
+        "col1": "Variable",
+        "col2": "Type",
+        "col3": "Description",
+        "dragDesc": "La valeur glissée. Tableau si multi-sélection",
+        "dragTypeDesc": "Le <code>drag-type</code> de l'élément",
+        "dragEffectDesc": "Le <code>drag-effect</code>",
+        "dropIndexDesc": "Indice d'insertion dans la zone de dépôt",
+        "sourceDesc": "<code>{ list, index, el }</code> — info source",
+        "targetDesc": "<code>{ list, index, el }</code> — info cible",
+        "preview": "Aperçu",
+        "demoText": "Chaque élément a un <code>drag-type</code> différent :",
+        "dropHere": "Déposez ici pour inspecter"
       },
       "cssClasses": {
-        "title": "Classes CSS"
+        "title": "Classes CSS",
+        "text": "Injectées automatiquement par No.JS :",
+        "col1": "Classe",
+        "col2": "Quand appliquée",
+        "draggingDesc": "Sur l'élément source pendant le glissement",
+        "dragOverDesc": "Sur la zone de dépôt lorsqu'un élément valide survole",
+        "dropRejectDesc": "Sur la zone de dépôt lorsque l'élément est rejeté (mauvais type ou maximum dépassé)",
+        "dropPlaceholderDesc": "Sur l'espace réservé d'insertion",
+        "selectedDesc": "Sur les éléments multi-sélectionnés",
+        "dropSettleDesc": "Brève animation de stabilisation au dépôt",
+        "dragListEmptyDesc": "Sur une <code>drag-list</code> lorsqu'elle est vide",
+        "preview": "Aperçu",
+        "demoText": "Glissez un élément et observez les classes s'appliquer :",
+        "dropZoneHint": "Zone de dépôt (max 2) — observez <code>.nojs-drag-over</code> / <code>.nojs-drop-reject</code>"
       },
       "a11y": {
-        "title": "Accessibilité"
+        "title": "Accessibilité",
+        "text": "No.JS ajoute automatiquement les attributs ARIA et le support clavier :",
+        "col1": "Fonctionnalité",
+        "col2": "Détails",
+        "draggableDesc": "Défini sur les sources de glissement",
+        "ariaGrabbedDesc": "Reflète l'état de glissement (<code>true</code>/<code>false</code>)",
+        "ariaDropeffectDesc": "Défini sur les zones de dépôt",
+        "roleListboxDesc": "Sur les conteneurs <code>drag-list</code>",
+        "roleOptionDesc": "Sur les éléments <code>drag-list</code>",
+        "tabindexDesc": "Pour l'accès au clavier",
+        "keyboardTitle": "Raccourcis clavier :",
+        "keyCol1": "Touche",
+        "keyCol2": "Action",
+        "spaceDesc": "Saisir l'élément ciblé",
+        "escapeDesc": "Annuler le glissement",
+        "arrowDesc": "Naviguer entre les éléments pendant le glissement",
+        "enterDesc": "Déposer à la position actuelle",
+        "preview": "Aperçu",
+        "demoText": "Utilisez <kbd>Tab</kbd> pour cibler, <kbd>Espace</kbd> pour saisir, <kbd>↑↓</kbd> pour déplacer, <kbd>Entrée</kbd> pour déposer :"
       }
     },
     "filters": {

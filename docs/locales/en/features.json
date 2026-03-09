@@ -21,7 +21,10 @@
       "h1": "Conditional rendering with if",
       "h2": "List rendering with each",
       "h3": "Text interpolation with bind",
-      "h4": "Visibility toggle with show"
+      "h4": "Visibility toggle with show",
+      "item1": "Buy groceries",
+      "item2": "Take out trash",
+      "item3": "Fix the bug"
     },
     "showcase3": {
       "badge": "Interactivity",
@@ -30,7 +33,8 @@
       "h1": "Click, submit, input, and more",
       "h2": "Direct state access in handlers",
       "h3": "Event modifiers support",
-      "h4": "No wrapper functions needed"
+      "h4": "No wrapper functions needed",
+      "clickedLabel": "Clicked:"
     },
     "grid": {
       "title": "More Features",
@@ -64,6 +68,9 @@
       "title": "Ready to Build?",
       "subtitle": "Start using No.JS in under 30 seconds.",
       "button": "Get Started Now"
+    },
+    "showcase": {
+      "previewLabel": "▶  PREVIEW"
     }
   }
 }

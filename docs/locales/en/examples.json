@@ -13,7 +13,9 @@
       "signingIn": "Signing in...",
       "previewHint": "Fill both fields to try the interactive preview",
       "signedIn": "Signed in!",
-      "signOut": "Sign out"
+      "signOut": "Sign out",
+      "emailLabel": "Email",
+      "passwordLabel": "Password"
     },
     "dashboard": {
       "badge": "Intermediate",
@@ -54,7 +56,8 @@
       "errors": "Errors",
       "lastResponse": "Last response time",
       "nextPoll": "Next poll in",
-      "refreshNote": "Refreshes automatically via <code>poll=\"5000\"</code>"
+      "refreshNote": "Refreshes automatically via <code>poll=\"5000\"</code>",
+      "onlineBadge": "Online"
     },
     "cta": {
       "title": "Want More Examples?",

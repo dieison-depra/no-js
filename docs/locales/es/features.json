@@ -21,7 +21,10 @@
       "h1": "Renderizado condicional con if",
       "h2": "Renderizado de listas con each",
       "h3": "Interpolación de texto con bind",
-      "h4": "Alternar visibilidad con show"
+      "h4": "Alternar visibilidad con show",
+      "item1": "Comprar víveres",
+      "item2": "Sacar la basura",
+      "item3": "Corregir el bug"
     },
     "showcase3": {
       "badge": "Interactividad",
@@ -30,7 +33,8 @@
       "h1": "Click, submit, input y más",
       "h2": "Acceso directo al estado en handlers",
       "h3": "Soporte para modificadores de eventos",
-      "h4": "Sin necesidad de funciones wrapper"
+      "h4": "Sin necesidad de funciones wrapper",
+      "clickedLabel": "Clicado:"
     },
     "grid": {
       "title": "Más Características",
@@ -64,6 +68,9 @@
       "title": "¿Listo para Construir?",
       "subtitle": "Empieza a usar No.JS en menos de 30 segundos.",
       "button": "Comenzar Ahora"
+    },
+    "showcase": {
+      "previewLabel": "▶  VISTA PREVIA"
     }
   }
 }

@@ -28,6 +28,13 @@
     },
     "reset": {
       "confirm": "Reset to original? Your changes will be lost."
+    },
+    "dialog": {
+      "cancel": "Cancel",
+      "ok": "OK"
+    },
+    "preview": {
+      "label": "Preview"
     }
   }
 }
