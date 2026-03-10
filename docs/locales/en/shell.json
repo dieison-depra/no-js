@@ -6,6 +6,7 @@
       "features": "Features",
       "examples": "Examples",
       "docs": "Docs",
+      "faq": "FAQ",
       "getStarted": "Get Started",
       "playground": "Playground"
     },
@@ -16,6 +17,7 @@
       "examples": "Examples",
       "apiReference": "API Reference",
       "playground": "Playground",
+      "faq": "FAQ",
       "github": "GitHub",
       "license": "2026 No.JS - MIT License"
     },

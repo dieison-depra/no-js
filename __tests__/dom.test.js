@@ -583,7 +583,7 @@ describe('_loadTemplateElement', () => {
     
     
     global.fetch = jest.fn()
-      .mockResolvedValueOnce({
+      .mockResolvedValue({
         text: () => Promise.resolve('<template src="./section.tpl"></template>'),
       });
 
@@ -595,9 +595,10 @@ describe('_loadTemplateElement', () => {
     document.body.appendChild(wrapper);
 
     await _loadTemplateElement(tpl);
+    // Wait for background cache warming
+    await new Promise((r) => setTimeout(r, 50));
 
-    
-    expect(global.fetch).toHaveBeenCalledTimes(1);
+    // Route template fetched + subtemplate cache-warmed (but not processed)
     expect(global.fetch).toHaveBeenCalledWith('/page.tpl');
     
     expect(tpl.content.querySelector('template[src="./section.tpl"]')).not.toBeNull();
@@ -888,5 +889,96 @@ describe('_loadRemoteTemplatesPhase2', () => {
     await _loadRemoteTemplatesPhase2();
 
     expect(global.fetch).not.toHaveBeenCalled();
+  });
+});
+
+
+
+
+describe('_loadTemplateElement — subtemplate cache warming', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    _templateHtmlCache.clear();
+  });
+
+  afterEach(() => {
+    delete global.fetch;
+    document.body.innerHTML = '';
+    _templateHtmlCache.clear();
+  });
+
+  test('route template pre-warms HTML cache for nested subtemplates', async () => {
+    global.fetch = jest.fn((url) => {
+      if (url === 'templates/docs.html') {
+        return Promise.resolve({
+          text: () => Promise.resolve('<template src="./docs/sidebar.tpl"></template><template src="./docs/getting-started.tpl"></template>'),
+        });
+      }
+      if (url === 'templates/docs/sidebar.tpl') {
+        return Promise.resolve({ text: () => Promise.resolve('<nav>Sidebar</nav>') });
+      }
+      if (url === 'templates/docs/getting-started.tpl') {
+        return Promise.resolve({ text: () => Promise.resolve('<section>Getting Started</section>') });
+      }
+      return Promise.resolve({ text: () => Promise.resolve('') });
+    });
+
+    const tpl = document.createElement('template');
+    tpl.setAttribute('src', 'templates/docs.html');
+    tpl.setAttribute('route', '/docs');
+    document.body.appendChild(tpl);
+
+    await _loadTemplateElement(tpl);
+    // Wait for background cache warming
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(_templateHtmlCache.has('templates/docs/sidebar.tpl')).toBe(true);
+    expect(_templateHtmlCache.has('templates/docs/getting-started.tpl')).toBe(true);
+    expect(_templateHtmlCache.get('templates/docs/sidebar.tpl')).toBe('<nav>Sidebar</nav>');
+  });
+
+  test('does not re-fetch subtemplates already in cache', async () => {
+    _templateHtmlCache.set('templates/docs/sidebar.tpl', '<nav>Cached</nav>');
+
+    global.fetch = jest.fn((url) => {
+      if (url === 'templates/docs.html') {
+        return Promise.resolve({
+          text: () => Promise.resolve('<template src="./docs/sidebar.tpl"></template>'),
+        });
+      }
+      return Promise.resolve({ text: () => Promise.resolve('') });
+    });
+
+    const tpl = document.createElement('template');
+    tpl.setAttribute('src', 'templates/docs.html');
+    tpl.setAttribute('route', '/docs');
+    document.body.appendChild(tpl);
+
+    await _loadTemplateElement(tpl);
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Only the route template itself should be fetched, not the cached subtemplate
+    expect(global.fetch).toHaveBeenCalledWith('templates/docs.html');
+    expect(global.fetch).not.toHaveBeenCalledWith('templates/docs/sidebar.tpl');
+    expect(_templateHtmlCache.get('templates/docs/sidebar.tpl')).toBe('<nav>Cached</nav>');
+  });
+
+  test('non-route templates do not trigger cache warming (they use _loadRemoteTemplates)', async () => {
+    global.fetch = jest.fn(() => Promise.resolve({
+      text: () => Promise.resolve('<p>content</p>'),
+    }));
+
+    const parent = document.createElement('div');
+    const tpl = document.createElement('template');
+    tpl.setAttribute('src', 'components/header.html');
+    // No route attribute
+    parent.appendChild(tpl);
+    document.body.appendChild(parent);
+
+    await _loadTemplateElement(tpl);
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Should have been fetched and processed via _loadRemoteTemplates, not cache warming
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 });

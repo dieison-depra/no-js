@@ -1,0 +1,106 @@
+{
+  "faq": {
+    "hero": {
+      "badge": "Support",
+      "title": "Questions fréquemment posées",
+      "subtitle": "Trouvez des réponses aux questions courantes sur le framework No.JS, ses fonctionnalités et les bonnes pratiques.",
+      "cta": "Parcourir les questions"
+    },
+    "search": {
+      "placeholder": "Rechercher dans la FAQ"
+    },
+    "sidebar": {
+      "questions": "Questions",
+      "gettingStarted": "Premiers pas",
+      "coreConcepts": "Concepts fondamentaux",
+      "features": "Fonctionnalités et capacités",
+      "performance": "Performance et production",
+      "resources": "Ressources",
+      "documentation": "Documentation",
+      "examples": "Exemples",
+      "discussions": "Discussions GitHub"
+    },
+    "gettingStarted": {
+      "title": "Premiers pas",
+      "q1": {
+        "question": "Qu'est-ce que No.JS ?",
+        "answer": "No.JS est un framework réactif axé sur le HTML qui vous permet de créer des applications web dynamiques en utilisant uniquement des attributs HTML — sans compilation JavaScript, sans DOM virtuel, sans étape de build. Il offre la réactivité, le routage, la récupération de données, l'i18n, les animations et bien plus encore, prêts à l'emploi."
+      },
+      "q2": {
+        "question": "Comment installer No.JS ?",
+        "answer": "Vous pouvez inclure No.JS via un CDN avec une simple balise script : <code>&lt;script src=\"https://unpkg.com/@erickxavier/no-js@latest/dist/iife/no.js\"&gt;&lt;/script></code>. Aucune étape de build ni gestionnaire de paquets requis — ajoutez la balise et commencez à construire."
+      },
+      "q3": {
+        "question": "Faut-il connaître JavaScript pour utiliser No.JS ?",
+        "answer": "Des connaissances de base en JavaScript sont utiles pour écrire des expressions dans les attributs, mais vous n'avez pas besoin d'écrire de fichiers JavaScript. Tout se fait de manière déclarative via des attributs HTML comme <code>state</code>, <code>bind</code>, <code>on:click</code> et <code>each</code>."
+      },
+      "q4": {
+        "question": "Quels navigateurs sont pris en charge ?",
+        "answer": "No.JS est compatible avec tous les navigateurs modernes, y compris Chrome, Firefox, Safari et Edge. Aucun polyfill n'est nécessaire et il utilise les API Web standard disponibles dans tous les navigateurs evergreen."
+      }
+    },
+    "coreConcepts": {
+      "title": "Concepts fondamentaux",
+      "q5": {
+        "question": "Comment fonctionne la réactivité dans No.JS ?",
+        "answer": "No.JS utilise des objets JavaScript Proxy pour créer un état réactif. Lorsque vous déclarez un état avec la directive <code>state</code>, les modifications se propagent automatiquement à tous les éléments liés dans le DOM — pas de mise à jour manuelle, pas d'appels à setState, pas de re-rendu nécessaire."
+      },
+      "q6": {
+        "question": "Que sont les directives ?",
+        "answer": "Les directives sont des attributs HTML qui ajoutent un comportement aux éléments. No.JS fournit des directives intégrées comme <code>state</code>, <code>bind</code>, <code>each</code>, <code>if</code>, <code>show</code>, <code>on:click</code>, <code>model</code> et bien d'autres. Vous pouvez également créer des directives personnalisées avec <code>NoJS.directive()</code>."
+      },
+      "q7": {
+        "question": "Puis-je utiliser No.JS avec des projets existants ?",
+        "answer": "Oui. No.JS est conçu pour une adoption progressive. Ajoutez-le à n'importe quelle page HTML avec une simple balise script. Il ne traite que les éléments dotés d'attributs No.JS, il n'interfère donc pas avec le code existant ni avec d'autres bibliothèques."
+      },
+      "q8": {
+        "question": "Comment No.JS se compare-t-il à React ou Vue ?",
+        "answer": "Contrairement à React ou Vue, No.JS ne nécessite aucune étape de build, aucun DOM virtuel et aucun fichier JavaScript. Vous écrivez tout dans des attributs HTML. Le résultat est des bundles considérablement plus petits (14 Ko contre plus de 100 Ko) et un déploiement plus simple — il suffit de livrer du HTML."
+      }
+    },
+    "features": {
+      "title": "Fonctionnalités et capacités",
+      "q9": {
+        "question": "No.JS prend-il en charge le routage côté client ?",
+        "answer": "Oui. No.JS inclut un routeur SPA intégré avec prise en charge des paramètres de chemin, des chaînes de requête, du routage basé sur le hash et du chargement de routes basé sur les fichiers. Définissez vos routes avec de simples attributs HTML — aucun fichier de configuration nécessaire."
+      },
+      "q10": {
+        "question": "Puis-je récupérer des données depuis des API ?",
+        "answer": "Oui. Utilisez les directives <code>get</code>, <code>post</code>, <code>put</code> ou <code>delete</code> pour récupérer des données de manière déclarative. No.JS gère les états de chargement, la gestion des erreurs, la mise en cache et la re-récupération automatique lorsque les dépendances changent."
+      },
+      "q11": {
+        "question": "L'internationalisation (i18n) est-elle prise en charge ?",
+        "answer": "Oui. No.JS dispose d'un support i18n intégré avec la directive <code>t</code>. Chargez des fichiers de traduction par langue, changez de langue dynamiquement et utilisez l'interpolation avec des paramètres — le tout de manière déclarative en HTML."
+      },
+      "q12": {
+        "question": "Comment gérer la validation de formulaires ?",
+        "answer": "No.JS fournit une validation déclarative des formulaires via la directive <code>validate</code>. Vous pouvez définir des règles, des messages d'erreur personnalisés et des modèles de validation directement dans votre balisage HTML — y compris les champs obligatoires, la longueur min/max, le format e-mail et les regex personnalisées."
+      }
+    },
+    "performance": {
+      "title": "Performance et production",
+      "q13": {
+        "question": "Quelle est la taille du bundle No.JS ?",
+        "answer": "Le framework No.JS complet pèse environ 14 Ko gzippé. Cela inclut toutes les fonctionnalités : réactivité, routage, récupération de données, i18n, animations, glisser-déposer et validation de formulaires. À titre de comparaison, React (44 Ko) + React DOM (130 Ko)."
+      },
+      "q14": {
+        "question": "No.JS est-il prêt pour la production ?",
+        "answer": "Oui. No.JS est conçu pour une utilisation en production avec des performances optimisées, une taille de bundle minimale et une couverture fonctionnelle complète. Il est utilisé dans des projets réels et a été rigoureusement testé sur tous les navigateurs modernes."
+      },
+      "q15": {
+        "question": "Puis-je utiliser No.JS depuis un CDN ?",
+        "answer": "Oui. La méthode recommandée pour commencer est d'utiliser un lien CDN depuis unpkg ou jsDelivr. Ajoutez simplement la balise script à votre HTML et commencez à construire — pas de npm, pas de bundler, pas de configuration nécessaire."
+      },
+      "q16": {
+        "question": "Ai-je besoin d'une étape de build ?",
+        "answer": "Non. No.JS fonctionne directement dans le navigateur avec une simple balise script. Aucune compilation, transpilation ou mise en bundle n'est nécessaire. Incluez simplement le lien CDN et commencez à construire. Le déploiement est aussi simple que de téléverser des fichiers HTML."
+      }
+    },
+    "cta": {
+      "title": "Vous avez encore des questions ?",
+      "subtitle": "Consultez la documentation ou rejoignez la communauté pour obtenir de l'aide.",
+      "docs": "Voir la documentation",
+      "discussions": "Discussions GitHub"
+    }
+  }
+}

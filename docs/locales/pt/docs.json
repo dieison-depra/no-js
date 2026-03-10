@@ -14,8 +14,6 @@
       "installation": {
         "title": "Instalação",
         "cdnSubtitle": "CDN (recomendado)",
-        "npmSubtitle": "NPM",
-        "npmCallout": "init() retorna uma Promise — ela carrega templates remotos e inicializa o router antes de processar as diretivas. Ao usar a tag <script> do CDN, isso é feito automaticamente no DOMContentLoaded.",
         "selfHostedSubtitle": "Auto-hospedado",
         "selfHostedText": "Baixe dist/iife/no.js e inclua com uma tag <script>. É um único arquivo, ~20 KB gzipped."
       },

@@ -1,16 +1,16 @@
 <!-- Forms & Validation — from forms-validation.md -->
 
 <section class="hero-section">
-  <span class="badge" t="docs.formsValidation.hero.badge">Guides</span>
-  <h1 class="hero-title" t-html="docs.formsValidation.hero.title">Forms &amp; Validation</h1>
-  <p class="hero-subtitle" t="docs.formsValidation.hero.subtitle">Declarative form submission with built-in and custom validation rules</p>
+  <span class="badge" t="docs.formsValidation.hero.badge"></span>
+  <h1 class="hero-title" t-html="docs.formsValidation.hero.title"></h1>
+  <p class="hero-subtitle" t="docs.formsValidation.hero.subtitle"></p>
 </section>
 
 <div class="doc-content">
 
   <!-- Declarative Form Submission -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.formsValidation.submission.title">Declarative Form Submission</h2>
+    <h2 class="doc-title" t="docs.formsValidation.submission.title"></h2>
     <div class="code-block"><pre><span class="hl-tag">&lt;form</span> <span class="hl-attr">post</span>=<span class="hl-str">"/api/register"</span>
       <span class="hl-attr">success</span>=<span class="hl-str">"#registerSuccess"</span>
       <span class="hl-attr">error</span>=<span class="hl-str">"#registerError"</span>
@@ -29,7 +29,7 @@
 
   <!-- Validation Rules -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.formsValidation.rules.title">Validation Rules</h2>
+    <h2 class="doc-title" t="docs.formsValidation.rules.title"></h2>
     <div class="code-block"><pre><span class="hl-cmt">&lt;!-- Built-in HTML5 validation --&gt;</span>
 <span class="hl-tag">&lt;input</span> <span class="hl-attr">required</span> <span class="hl-tag">/&gt;</span>
 <span class="hl-tag">&lt;input</span> <span class="hl-attr">minlength</span>=<span class="hl-str">"3"</span> <span class="hl-attr">maxlength</span>=<span class="hl-str">"50"</span> <span class="hl-tag">/&gt;</span>
@@ -58,18 +58,18 @@
 
   <!-- $form Context -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.formsValidation.formContext.title">$form — Form Context</h2>
-    <p class="doc-text" t="docs.formsValidation.formContext.text">Inside any <code>&lt;form&gt;</code> with the <code>validate</code> attribute, <code>$form</code> provides:</p>
+    <h2 class="doc-title" t="docs.formsValidation.formContext.title"></h2>
+    <p class="doc-text" t="docs.formsValidation.formContext.text"></p>
     <table class="doc-table">
-      <thead><tr><th t="docs.formsValidation.formContext.col1">Property</th><th t="docs.formsValidation.formContext.col2">Type</th><th t="docs.formsValidation.formContext.col3">Description</th></tr></thead>
+      <thead><tr><th t="docs.formsValidation.formContext.col1"></th><th t="docs.formsValidation.formContext.col2"></th><th t="docs.formsValidation.formContext.col3"></th></tr></thead>
       <tbody>
-        <tr><td><code>$form.valid</code></td><td>boolean</td><td t="docs.formsValidation.formContext.valid"><code>true</code> if all fields pass validation</td></tr>
-        <tr><td><code>$form.dirty</code></td><td>boolean</td><td t="docs.formsValidation.formContext.dirty"><code>true</code> if any field has been modified</td></tr>
-        <tr><td><code>$form.touched</code></td><td>boolean</td><td t="docs.formsValidation.formContext.touched"><code>true</code> if any field has been focused and blurred</td></tr>
-        <tr><td><code>$form.submitting</code></td><td>boolean</td><td t="docs.formsValidation.formContext.submitting"><code>true</code> while the request is in flight</td></tr>
-        <tr><td><code>$form.errors</code></td><td>object</td><td t="docs.formsValidation.formContext.errors">Map of field names → error messages</td></tr>
-        <tr><td><code>$form.values</code></td><td>object</td><td t="docs.formsValidation.formContext.values">Current form values</td></tr>
-        <tr><td><code>$form.reset()</code></td><td>function</td><td t="docs.formsValidation.formContext.reset">Reset form to initial values</td></tr>
+        <tr><td><code>$form.valid</code></td><td>boolean</td><td t="docs.formsValidation.formContext.valid"></td></tr>
+        <tr><td><code>$form.dirty</code></td><td>boolean</td><td t="docs.formsValidation.formContext.dirty"></td></tr>
+        <tr><td><code>$form.touched</code></td><td>boolean</td><td t="docs.formsValidation.formContext.touched"></td></tr>
+        <tr><td><code>$form.submitting</code></td><td>boolean</td><td t="docs.formsValidation.formContext.submitting"></td></tr>
+        <tr><td><code>$form.errors</code></td><td>object</td><td t="docs.formsValidation.formContext.errors"></td></tr>
+        <tr><td><code>$form.values</code></td><td>object</td><td t="docs.formsValidation.formContext.values"></td></tr>
+        <tr><td><code>$form.reset()</code></td><td>function</td><td t="docs.formsValidation.formContext.reset"></td></tr>
       </tbody>
     </table>
 
@@ -91,7 +91,7 @@
 
   <!-- Custom Validators -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.formsValidation.customValidators.title">Custom Validators</h2>
+    <h2 class="doc-title" t="docs.formsValidation.customValidators.title"></h2>
     <div class="code-block"><pre><span class="hl-tag">&lt;script&gt;</span>
   <span class="hl-fn">NoJS</span>.<span class="hl-fn">validator</span>(<span class="hl-str">'strongPassword'</span>, (<span class="hl-attr">value</span>) <span class="hl-op">=&gt;</span> {
     <span class="hl-kw">if</span> (value.length <span class="hl-op">&lt;</span> <span class="hl-num">8</span>) <span class="hl-kw">return</span> <span class="hl-str">'Must be at least 8 characters'</span>;
@@ -106,7 +106,7 @@
 
   <!-- Live Demo -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.formsValidation.liveDemo.title">Live Demo — Contact Form</h2>
+    <h2 class="doc-title" t="docs.formsValidation.liveDemo.title"></h2>
     <div class="demo-split">
       <div class="demo-code">
         <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">state</span>=<span class="hl-str">"{ name: '', email: '', sent: false }"</span><span class="hl-tag">&gt;</span>
@@ -117,7 +117,7 @@
 <span class="hl-tag">&lt;/div&gt;</span></pre></div>
       </div>
       <div class="demo-preview">
-        <span class="demo-result-label" t="docs.formsValidation.liveDemo.label">Result</span>
+        <span class="demo-result-label" t="docs.formsValidation.liveDemo.label"></span>
         <div state="{ name: '', email: '', sent: false }">
           <div class="form-group">
             <input class="input" model="name" placeholder="Your name" t-placeholder="docs.formsValidation.liveDemo.namePlaceholder" />
@@ -125,8 +125,8 @@
           <div class="form-group">
             <input class="input" model="email" placeholder="Your email" t-placeholder="docs.formsValidation.liveDemo.emailPlaceholder" />
           </div>
-          <button class="btn btn-primary btn-sm" on:click="sent = true" t="docs.formsValidation.liveDemo.sendButton">Send</button>
-          <p show="sent" style="margin-top: 12px; color: var(--success);"><span t="docs.formsValidation.liveDemo.thanks">Thanks,</span> <span bind="name"></span>!</p>
+          <button class="btn btn-primary btn-sm" on:click="sent = true" t="docs.formsValidation.liveDemo.sendButton"></button>
+          <p show="sent" style="margin-top: 12px; color: var(--success);"><span t="docs.formsValidation.liveDemo.thanks"></span> <span bind="name"></span>!</p>
         </div>
       </div>
     </div>

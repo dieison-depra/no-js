@@ -1,16 +1,16 @@
 <!-- Actions & Refs — from actions-refs.md -->
 
 <section class="hero-section">
-  <span class="badge" t="docs.actionsRefs.hero.badge">API Reference</span>
-  <h1 class="hero-title" t-html="docs.actionsRefs.hero.title">Actions &amp; Refs</h1>
-  <p class="hero-subtitle" t="docs.actionsRefs.hero.subtitle">Trigger API calls, emit custom events, and reference DOM elements</p>
+  <span class="badge" t="docs.actionsRefs.hero.badge"></span>
+  <h1 class="hero-title" t-html="docs.actionsRefs.hero.title"></h1>
+  <p class="hero-subtitle" t="docs.actionsRefs.hero.subtitle"></p>
 </section>
 
 <div class="doc-content">
 
   <!-- call -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.actionsRefs.call.title">call — Trigger API Requests from Any Element</h2>
+    <h2 class="doc-title" t="docs.actionsRefs.call.title"></h2>
     <div class="code-block"><pre><span class="hl-cmt">&lt;!-- Logout button --&gt;</span>
 <span class="hl-tag">&lt;a</span> <span class="hl-attr">call</span>=<span class="hl-str">"/api/logout"</span>
    <span class="hl-attr">method</span>=<span class="hl-str">"post"</span>
@@ -46,7 +46,7 @@
 
   <!-- trigger -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.actionsRefs.trigger.title">trigger — Emit Custom Events</h2>
+    <h2 class="doc-title" t="docs.actionsRefs.trigger.title"></h2>
     <div class="code-block"><pre><span class="hl-cmt">&lt;!-- Child emits an event --&gt;</span>
 <span class="hl-tag">&lt;button</span> <span class="hl-attr">trigger</span>=<span class="hl-str">"item-selected"</span> <span class="hl-attr">trigger-data</span>=<span class="hl-str">"item"</span><span class="hl-tag">&gt;</span>
   Select
@@ -60,8 +60,8 @@
 
   <!-- ref -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.actionsRefs.ref.title">ref — Named References</h2>
-    <p class="doc-text" t="docs.actionsRefs.ref.text">Access DOM elements without <code>querySelector</code>:</p>
+    <h2 class="doc-title" t="docs.actionsRefs.ref.title"></h2>
+    <p class="doc-text" t="docs.actionsRefs.ref.text"></p>
     <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">state</span>=<span class="hl-str">"{ }"</span><span class="hl-tag">&gt;</span>
   <span class="hl-tag">&lt;input</span> <span class="hl-attr">ref</span>=<span class="hl-str">"searchInput"</span> <span class="hl-attr">type</span>=<span class="hl-str">"text"</span> <span class="hl-tag">/&gt;</span>
   <span class="hl-tag">&lt;canvas</span> <span class="hl-attr">ref</span>=<span class="hl-str">"chart"</span><span class="hl-tag">&gt;&lt;/canvas&gt;</span>
@@ -71,8 +71,8 @@
 
   <!-- $refs -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.actionsRefs.refsMap.title">$refs — Ref Map</h2>
-    <p class="doc-text" t="docs.actionsRefs.refsMap.text">All elements with <code>ref</code> are accessible via <code>$refs</code> in the current scope:</p>
+    <h2 class="doc-title" t="docs.actionsRefs.refsMap.title"></h2>
+    <p class="doc-text" t="docs.actionsRefs.refsMap.text"></p>
     <div class="code-block"><pre><span class="hl-tag">&lt;video</span> <span class="hl-attr">ref</span>=<span class="hl-str">"player"</span> <span class="hl-attr">src</span>=<span class="hl-str">"video.mp4"</span><span class="hl-tag">&gt;&lt;/video&gt;</span>
 <span class="hl-tag">&lt;button</span> <span class="hl-attr">on:click</span>=<span class="hl-str">"$refs.player.play()"</span><span class="hl-tag">&gt;</span>▶ Play<span class="hl-tag">&lt;/button&gt;</span>
 <span class="hl-tag">&lt;button</span> <span class="hl-attr">on:click</span>=<span class="hl-str">"$refs.player.pause()"</span><span class="hl-tag">&gt;</span>⏸ Pause<span class="hl-tag">&lt;/button&gt;</span></pre></div>

@@ -1,16 +1,16 @@
 <!-- i18n — from i18n.md -->
 
 <section class="hero-section">
-  <span class="badge" t="docs.i18n.hero.badge">Guides</span>
-  <h1 class="hero-title" t="docs.i18n.hero.title">Internationalization (i18n)</h1>
-  <p class="hero-subtitle" t="docs.i18n.hero.subtitle">Multi-language support with translations, pluralization, and locale-aware formatting</p>
+  <span class="badge" t="docs.i18n.hero.badge"></span>
+  <h1 class="hero-title" t="docs.i18n.hero.title"></h1>
+  <p class="hero-subtitle" t="docs.i18n.hero.subtitle"></p>
 </section>
 
 <div class="doc-content">
 
   <!-- Setup -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.i18n.setup.title">Setup</h2>
+    <h2 class="doc-title" t="docs.i18n.setup.title"></h2>
     <div class="code-block"><pre><span class="hl-tag">&lt;script&gt;</span>
   <span class="hl-fn">NoJS</span>.<span class="hl-fn">i18n</span>({
     <span class="hl-attr">defaultLocale</span>: <span class="hl-str">'en'</span>,
@@ -46,11 +46,11 @@
 
   <!-- External Locale Files -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.i18n.externalFiles.title">External Locale Files</h2>
-    <p class="doc-text" t="docs.i18n.externalFiles.text">Instead of inlining all translations in JavaScript, you can load them from external JSON files. This is ideal for large apps with many locales or when translations are managed by a separate tool.</p>
+    <h2 class="doc-title" t="docs.i18n.externalFiles.title"></h2>
+    <p class="doc-text" t="docs.i18n.externalFiles.text"></p>
 
-    <h3 class="doc-title" t="docs.i18n.externalFiles.flatSubtitle">Flat Mode (one file per locale)</h3>
-    <p class="doc-text" t="docs.i18n.externalFiles.flatText">Structure:</p>
+    <h3 class="doc-title" t="docs.i18n.externalFiles.flatSubtitle"></h3>
+    <p class="doc-text" t="docs.i18n.externalFiles.flatText"></p>
     <div class="code-block"><pre>/locales/en.json
 /locales/es.json
 /locales/pt.json</pre></div>
@@ -69,8 +69,8 @@
   });
 <span class="hl-tag">&lt;/script&gt;</span></pre></div>
 
-    <h3 class="doc-title" t="docs.i18n.externalFiles.nsSubtitle">Namespace Mode (split by feature)</h3>
-    <p class="doc-text" t="docs.i18n.externalFiles.nsText">Split translations by feature for code-splitting and on-demand loading:</p>
+    <h3 class="doc-title" t="docs.i18n.externalFiles.nsSubtitle"></h3>
+    <p class="doc-text" t="docs.i18n.externalFiles.nsText"></p>
     <div class="code-block"><pre>/locales/en/common.json
 /locales/en/dashboard.json
 /locales/es/common.json
@@ -84,25 +84,25 @@
   });
 <span class="hl-tag">&lt;/script&gt;</span></pre></div>
 
-    <h3 class="doc-title" t="docs.i18n.externalFiles.nsRouteSubtitle">Namespace per Route</h3>
-    <p class="doc-text" t="docs.i18n.externalFiles.nsRouteText">Use <code>i18n-ns</code> on a route template to load a namespace on-demand when the route is navigated to:</p>
+    <h3 class="doc-title" t="docs.i18n.externalFiles.nsRouteSubtitle"></h3>
+    <p class="doc-text" t="docs.i18n.externalFiles.nsRouteText"></p>
     <div class="code-block"><pre><span class="hl-tag">&lt;template</span> <span class="hl-attr">route</span>=<span class="hl-str">"/dashboard"</span> <span class="hl-attr">src</span>=<span class="hl-str">"./pages/dashboard.tpl"</span> <span class="hl-attr">i18n-ns</span>=<span class="hl-str">"dashboard"</span><span class="hl-tag">&gt;&lt;/template&gt;</span></pre></div>
 
-    <h3 class="doc-title" t="docs.i18n.externalFiles.nsElementSubtitle">Namespace on Any Element</h3>
-    <p class="doc-text" t="docs.i18n.externalFiles.nsElementText">Use <code>i18n-ns</code> on any element to load a namespace before its children are processed:</p>
+    <h3 class="doc-title" t="docs.i18n.externalFiles.nsElementSubtitle"></h3>
+    <p class="doc-text" t="docs.i18n.externalFiles.nsElementText"></p>
     <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">i18n-ns</span>=<span class="hl-str">"settings"</span><span class="hl-tag">&gt;</span>
   <span class="hl-tag">&lt;h2</span> <span class="hl-attr">t</span>=<span class="hl-str">"settings.title"</span><span class="hl-tag">&gt;&lt;/h2&gt;</span>
   <span class="hl-tag">&lt;p</span> <span class="hl-attr">t</span>=<span class="hl-str">"settings.desc"</span><span class="hl-tag">&gt;&lt;/p&gt;</span>
 <span class="hl-tag">&lt;/div&gt;</span></pre></div>
 
-    <h3 class="doc-title" t="docs.i18n.externalFiles.cachingSubtitle">Caching</h3>
-    <p class="doc-text" t="docs.i18n.externalFiles.cachingText">Fetched JSON files are cached in memory by default. Set <code>cache: false</code> during development:</p>
+    <h3 class="doc-title" t="docs.i18n.externalFiles.cachingSubtitle"></h3>
+    <p class="doc-text" t="docs.i18n.externalFiles.cachingText"></p>
     <div class="code-block"><pre><span class="hl-fn">NoJS</span>.<span class="hl-fn">i18n</span>({ <span class="hl-attr">loadPath</span>: <span class="hl-str">'/locales/{locale}.json'</span>, <span class="hl-attr">cache</span>: <span class="hl-kw">false</span> });</pre></div>
   </div>
 
   <!-- Usage -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.i18n.usage.title">Usage</h2>
+    <h2 class="doc-title" t="docs.i18n.usage.title"></h2>
     <div class="code-block"><pre><span class="hl-cmt">&lt;!-- Simple translation --&gt;</span>
 <span class="hl-tag">&lt;h1</span> <span class="hl-attr">t</span>=<span class="hl-str">"welcome"</span><span class="hl-tag">&gt;&lt;/h1&gt;</span>
 <span class="hl-cmt">&lt;!-- Output: "Welcome to No.JS" / "Bienvenido a No.JS" / "Bienvenue sur No.JS" --&gt;</span>
@@ -129,7 +129,7 @@
 
   <!-- Number & Date Formatting -->
   <div class="doc-section">
-    <h2 class="doc-title" t-html="docs.i18n.formatting.title">Number &amp; Date Formatting</h2>
+    <h2 class="doc-title" t-html="docs.i18n.formatting.title"></h2>
     <div class="code-block"><pre><span class="hl-cmt">&lt;!-- Currency --&gt;</span>
 <span class="hl-tag">&lt;span</span> <span class="hl-attr">bind</span>=<span class="hl-str">"price | currency"</span><span class="hl-tag">&gt;&lt;/span&gt;</span>           <span class="hl-cmt">&lt;!-- $1,234.56 --&gt;</span>
 <span class="hl-tag">&lt;span</span> <span class="hl-attr">bind</span>=<span class="hl-str">"price | currency:'BRL'"</span><span class="hl-tag">&gt;&lt;/span&gt;</span>     <span class="hl-cmt">&lt;!-- R$ 1.234,56 --&gt;</span>
@@ -148,7 +148,7 @@
 
   <!-- Live Demo -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.i18n.liveDemo.title">Live Demo — Locale Switcher</h2>
+    <h2 class="doc-title" t="docs.i18n.liveDemo.title"></h2>
     <div class="demo-split">
       <div class="demo-code">
         <div class="code-block"><pre><span class="hl-tag">&lt;button</span> <span class="hl-attr">on:click</span>=<span class="hl-str">"$i18n.locale = 'en'"</span><span class="hl-tag">&gt;</span>EN<span class="hl-tag">&lt;/button&gt;</span>
@@ -160,7 +160,7 @@
 <span class="hl-tag">&lt;p</span> <span class="hl-attr">t</span>=<span class="hl-str">"greeting"</span> <span class="hl-attr">t-name</span>=<span class="hl-str">"'World'"</span><span class="hl-tag">&gt;&lt;/p&gt;</span></pre></div>
       </div>
       <div class="demo-preview">
-        <span class="demo-result-label" t="docs.i18n.liveDemo.label">Result</span>
+        <span class="demo-result-label" t="docs.i18n.liveDemo.label"></span>
         <div>
           <div style="display: flex; gap: 8px; margin-bottom: 12px;">
             <button class="btn btn-sm" class-btn-primary="NoJS.locale === 'en'" class-btn-secondary="NoJS.locale !== 'en'" on:click="$i18n.locale = 'en'">EN</button>
@@ -171,7 +171,7 @@
           </div>
           <h3 t="shell.demo.welcome" style="margin-bottom: 8px;"></h3>
           <p t="shell.demo.greeting" t-name="'World'" style="color: var(--text-muted);"></p>
-          <p style="margin-top: 8px; font-size: 0.8rem; color: var(--text-dim);"><span t="docs.i18n.liveDemo.localeLabel">Locale:</span> <span bind="NoJS.locale"></span></p>
+          <p style="margin-top: 8px; font-size: 0.8rem; color: var(--text-dim);"><span t="docs.i18n.liveDemo.localeLabel"></span> <span bind="NoJS.locale"></span></p>
         </div>
       </div>
     </div>

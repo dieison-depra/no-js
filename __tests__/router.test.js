@@ -14,7 +14,7 @@ describe('Router', () => {
     document.body.innerHTML = '';
     window.location.hash = '';
 
-    
+
     window.scrollTo = jest.fn();
   });
 
@@ -50,7 +50,7 @@ describe('Router', () => {
     const tpl = document.createElement('template');
     router.register('/home', tpl);
     router.register('/about', tpl);
-    
+
   });
 
   test('push navigates to new route (hash mode)', () => {
@@ -229,7 +229,7 @@ describe('Router', () => {
     router.register('/login', loginTpl);
 
     await router.push('/admin');
-    
+
     expect(router.current.path).toBe('/login');
     expect(outlet.querySelector('.login')).not.toBeNull();
   });
@@ -258,19 +258,14 @@ describe('Router', () => {
     outlet.setAttribute('route-view', '');
     document.body.appendChild(outlet);
 
-    let outletHadContentDuringNestedFetch = false;
-
-    global.fetch = jest.fn()
-      
-      .mockResolvedValueOnce({
-        text: () => Promise.resolve('<div id="section-wrap"><template src="./section.tpl"></template></div>'),
-      })
-      
-      .mockImplementationOnce(() => {
-        
-        outletHadContentDuringNestedFetch = outlet.querySelector('#section-wrap') !== null;
-        return Promise.resolve({ text: () => Promise.resolve('<p class="section-loaded">Done</p>') });
-      });
+    global.fetch = jest.fn((url) => {
+      if (url === '/nested-page.tpl') {
+        return Promise.resolve({
+          text: () => Promise.resolve('<div id="section-wrap"><template src="./section.tpl"></template></div>'),
+        });
+      }
+      return Promise.resolve({ text: () => Promise.resolve('<p class="section-loaded">Done</p>') });
+    });
 
     router = _createRouter();
     const tpl = document.createElement('template');
@@ -281,28 +276,26 @@ describe('Router', () => {
 
     await router.push('/nested-test');
 
-    expect(outletHadContentDuringNestedFetch).toBe(true);
     expect(outlet.querySelector('.section-loaded')).not.toBeNull();
     expect(outlet.querySelector('.section-loaded').textContent).toBe('Done');
   });
 
   test('__srcBase from route template is preserved to wrapper so ./ nested paths resolve correctly', async () => {
-    
-    
-    
+
+
+
     const outlet = document.createElement('div');
     outlet.setAttribute('route-view', '');
     document.body.appendChild(outlet);
 
-    global.fetch = jest.fn()
-      
-      .mockResolvedValueOnce({
-        text: () => Promise.resolve('<template src="./section.tpl"></template>'),
-      })
-      
-      .mockResolvedValueOnce({
-        text: () => Promise.resolve('<p class="ok">ok</p>'),
-      });
+    global.fetch = jest.fn((url) => {
+      if (url === 'templates/page.tpl') {
+        return Promise.resolve({
+          text: () => Promise.resolve('<template src="./section.tpl"></template>'),
+        });
+      }
+      return Promise.resolve({ text: () => Promise.resolve('<p class="ok">ok</p>') });
+    });
 
     router = _createRouter();
     const tpl = document.createElement('template');
@@ -313,7 +306,7 @@ describe('Router', () => {
 
     await router.push('/srcbase-test');
 
-    
+
     expect(global.fetch).toHaveBeenCalledWith('templates/section.tpl');
     expect(outlet.querySelector('.ok')).not.toBeNull();
   });
@@ -502,7 +495,7 @@ describe('Router — route link click delegation', () => {
 
     await router.init();
 
-    
+
     await router.push('/about');
 
     expect(router.current.path).toBe('/about');
@@ -614,7 +607,7 @@ describe('Router — guard with null templateEl', () => {
     await router.push('/ghost');
 
     expect(router.current.path).toBe('/ghost');
-    
+
     expect(outlet.innerHTML).toBe('');
   });
 });
@@ -641,10 +634,10 @@ describe('Router — popstate handler with base stripping', () => {
     tpl.innerHTML = '<p class="settings">Settings</p>';
     document.body.appendChild(tpl);
 
-    
+
     window.history.pushState({}, '', '/app/');
 
-    
+
     let popstateHandler;
     const origAdd = window.addEventListener;
     window.addEventListener = function (event, handler, ...rest) {
@@ -656,13 +649,13 @@ describe('Router — popstate handler with base stripping', () => {
     setRouterInstance(router);
     await router.init();
 
-    
+
     window.addEventListener = origAdd;
 
-    
+
     window.history.pushState({}, '', '/app/settings');
 
-    
+
     popstateHandler();
 
     expect(router.current.path).toBe('/settings');
@@ -724,7 +717,7 @@ describe('Router — init collects routes and reads initial path', () => {
     _config.router = { mode: 'history', base: '/', scrollBehavior: 'top' };
     window.scrollTo = jest.fn();
 
-    
+
     window.history.pushState({}, '', '/');
 
     const outlet = document.createElement('div');
@@ -742,6 +735,184 @@ describe('Router — init collects routes and reads initial path', () => {
 
     expect(router.current.path).toBe('/');
     expect(outlet.querySelector('.root')).not.toBeNull();
+  });
+});
+
+describe('Router — prefetch routes from <a route> links', () => {
+  beforeEach(() => {
+    _config.router = { mode: 'hash', base: '/', scrollBehavior: 'top' };
+    document.body.innerHTML = '';
+    window.location.hash = '';
+    window.scrollTo = jest.fn();
+    setRouterInstance(null);
+    _templateHtmlCache.clear();
+  });
+
+  afterEach(() => {
+    setRouterInstance(null);
+    document.body.innerHTML = '';
+    window.location.hash = '';
+  });
+
+  test('prefetches route templates from <a route> links on init', async () => {
+    const fetchedUrls = [];
+    global.fetch = jest.fn((url) => {
+      fetchedUrls.push(url);
+      return Promise.resolve({ text: () => Promise.resolve('<p>Prefetched</p>') });
+    });
+
+    const outlet = document.createElement('div');
+    outlet.setAttribute('route-view', '');
+    outlet.setAttribute('src', 'templates/');
+    outlet.setAttribute('route-index', 'landing');
+    document.body.appendChild(outlet);
+
+    // Route links
+    const link1 = document.createElement('a');
+    link1.setAttribute('route', '/features');
+    document.body.appendChild(link1);
+
+    const link2 = document.createElement('a');
+    link2.setAttribute('route', '/examples');
+    document.body.appendChild(link2);
+
+    const router = _createRouter();
+    setRouterInstance(router);
+    await router.init();
+
+    // Wait for background prefetch to complete
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(fetchedUrls).toContain('templates/features.html');
+    expect(fetchedUrls).toContain('templates/examples.html');
+  });
+
+  test('lazy="ondemand" links are not prefetched', async () => {
+    const fetchedUrls = [];
+    global.fetch = jest.fn((url) => {
+      fetchedUrls.push(url);
+      return Promise.resolve({ text: () => Promise.resolve('<p>Page</p>') });
+    });
+
+    const outlet = document.createElement('div');
+    outlet.setAttribute('route-view', '');
+    outlet.setAttribute('src', 'templates/');
+    outlet.setAttribute('route-index', 'landing');
+    document.body.appendChild(outlet);
+
+    const link = document.createElement('a');
+    link.setAttribute('route', '/playground');
+    link.setAttribute('lazy', 'ondemand');
+    document.body.appendChild(link);
+
+    const router = _createRouter();
+    setRouterInstance(router);
+    await router.init();
+
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(fetchedUrls).not.toContain('templates/playground.html');
+  });
+
+  test('lazy="priority" links are prefetched before default links', async () => {
+    const fetchOrder = [];
+    global.fetch = jest.fn((url) => {
+      fetchOrder.push(url);
+      return Promise.resolve({ text: () => Promise.resolve('<p>Page</p>') });
+    });
+
+    const outlet = document.createElement('div');
+    outlet.setAttribute('route-view', '');
+    outlet.setAttribute('src', 'templates/');
+    outlet.setAttribute('route-index', 'landing');
+    document.body.appendChild(outlet);
+
+    // Default link
+    const bgLink = document.createElement('a');
+    bgLink.setAttribute('route', '/features');
+    document.body.appendChild(bgLink);
+
+    // Priority link
+    const prioLink = document.createElement('a');
+    prioLink.setAttribute('route', '/docs');
+    prioLink.setAttribute('lazy', 'priority');
+    document.body.appendChild(prioLink);
+
+    const router = _createRouter();
+    setRouterInstance(router);
+    await router.init();
+
+    // Wait for all fetches
+    await new Promise((r) => setTimeout(r, 50));
+
+    const docsIdx = fetchOrder.indexOf('templates/docs.html');
+    const featIdx = fetchOrder.indexOf('templates/features.html');
+    expect(docsIdx).toBeGreaterThanOrEqual(0);
+    expect(featIdx).toBeGreaterThanOrEqual(0);
+    expect(docsIdx).toBeLessThan(featIdx);
+  });
+
+  test('deduplicates links — priority wins over default', async () => {
+    const fetchedUrls = [];
+    global.fetch = jest.fn((url) => {
+      fetchedUrls.push(url);
+      return Promise.resolve({ text: () => Promise.resolve('<p>Page</p>') });
+    });
+
+    const outlet = document.createElement('div');
+    outlet.setAttribute('route-view', '');
+    outlet.setAttribute('src', 'templates/');
+    outlet.setAttribute('route-index', 'landing');
+    document.body.appendChild(outlet);
+
+    // Same path, two links: one default, one priority
+    const link1 = document.createElement('a');
+    link1.setAttribute('route', '/docs');
+    document.body.appendChild(link1);
+
+    const link2 = document.createElement('a');
+    link2.setAttribute('route', '/docs');
+    link2.setAttribute('lazy', 'priority');
+    document.body.appendChild(link2);
+
+    const router = _createRouter();
+    setRouterInstance(router);
+    await router.init();
+
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Should only fetch once
+    const docsFetches = fetchedUrls.filter((u) => u === 'templates/docs.html');
+    expect(docsFetches.length).toBe(1);
+  });
+
+  test('current route is not prefetched', async () => {
+    const fetchedUrls = [];
+    global.fetch = jest.fn((url) => {
+      fetchedUrls.push(url);
+      return Promise.resolve({ text: () => Promise.resolve('<p>Page</p>') });
+    });
+
+    const outlet = document.createElement('div');
+    outlet.setAttribute('route-view', '');
+    outlet.setAttribute('src', 'templates/');
+    outlet.setAttribute('route-index', 'landing');
+    document.body.appendChild(outlet);
+
+    // Link to current route (/ maps to landing)
+    const link = document.createElement('a');
+    link.setAttribute('route', '/');
+    document.body.appendChild(link);
+
+    const router = _createRouter();
+    setRouterInstance(router);
+    await router.init();
+
+    await new Promise((r) => setTimeout(r, 50));
+
+    // landing.html is fetched for the initial route render, not for prefetch
+    // The prefetch should skip "/" since it's the current path
+    expect(fetchedUrls.filter((u) => u === 'templates/landing.html').length).toBeLessThanOrEqual(1);
   });
 });
 
@@ -781,10 +952,10 @@ describe('Router — popstate handler in history mode (L173-177)', () => {
 
     const router = _createRouter();
     setRouterInstance(router);
-    
+
     router.init();
 
-    
+
     window.history.pushState({}, '', '/about');
     window.dispatchEvent(new Event('popstate'));
 
@@ -808,7 +979,7 @@ describe('Router — popstate handler in history mode (L173-177)', () => {
     tplSettings.innerHTML = '<p class="settings">Settings</p>';
     document.body.appendChild(tplSettings);
 
-    
+
     let popstateHandler;
     const origAdd = window.addEventListener;
     window.addEventListener = function (event, handler, ...rest) {
@@ -818,16 +989,16 @@ describe('Router — popstate handler in history mode (L173-177)', () => {
 
     const router = _createRouter();
     setRouterInstance(router);
-    
+
     router.init();
 
     window.addEventListener = origAdd;
 
-    
+
     window.history.pushState({}, '', '/myapp/settings');
     popstateHandler();
 
-    
+
     expect(router.current.path).toBe('/settings');
   });
 });
@@ -1401,7 +1572,7 @@ describe('Router — Named Outlets', () => {
     window.location.hash = '';
   });
 
-  
+
 
   test('register() with 2 args registers to "default" outlet', async () => {
     const outlet = document.createElement('div');
@@ -1442,7 +1613,7 @@ describe('Router — Named Outlets', () => {
     expect(sidebarOutlet.innerHTML).toContain('Sidebar');
   });
 
-  
+
 
   test('route-view with empty value treated as default outlet', async () => {
     const outlet = document.createElement('div');
@@ -1453,13 +1624,13 @@ describe('Router — Named Outlets', () => {
     tpl.innerHTML = '<p>Default content</p>';
 
     const router = _createRouter();
-    router.register('/test', tpl);  
+    router.register('/test', tpl);
     await router.push('/test');
 
     expect(outlet.innerHTML).toContain('Default content');
   });
 
-  
+
 
   test('template outlet attr registers to named outlet via init()', async () => {
     const mainOutlet = document.createElement('div');
@@ -1470,7 +1641,7 @@ describe('Router — Named Outlets', () => {
     sidebarOutlet.setAttribute('route-view', 'sidebar');
     document.body.appendChild(sidebarOutlet);
 
-    
+
     const mainTpl = document.createElement('template');
     mainTpl.setAttribute('route', '/dash');
     mainTpl.innerHTML = '<h1>Dashboard</h1>';
@@ -1491,7 +1662,7 @@ describe('Router — Named Outlets', () => {
     expect(sidebarOutlet.innerHTML).toContain('Dashboard nav');
   });
 
-  
+
 
   test('named outlet is cleared when route has no template for that outlet', async () => {
     const mainOutlet = document.createElement('div');
@@ -1507,15 +1678,15 @@ describe('Router — Named Outlets', () => {
     mainTpl.innerHTML = '<p>About</p>';
 
     const router = _createRouter();
-    router.register('/about', mainTpl); 
+    router.register('/about', mainTpl);
     await router.push('/about');
 
     expect(mainOutlet.innerHTML).toContain('About');
-    
+
     expect(sidebarOutlet.innerHTML).toBe('');
   });
 
-  
+
 
   test('renders three different outlets for same route', async () => {
     const mainOutlet = document.createElement('div');
@@ -1550,7 +1721,7 @@ describe('Router — Named Outlets', () => {
     expect(topbarOutlet.innerHTML).toContain('Top bar');
   });
 
-  
+
 
   test('navigating clears named outlet when new route has no template for it', async () => {
     const mainOutlet = document.createElement('div');
@@ -1569,25 +1740,25 @@ describe('Router — Named Outlets', () => {
 
     const aboutTpl = document.createElement('template');
     aboutTpl.innerHTML = '<p>About</p>';
-    
+
 
     const router = _createRouter();
     router.register('/home', homeTpl);
     router.register('/home', homeSidebarTpl, 'sidebar');
     router.register('/about', aboutTpl);
 
-    
+
     await router.push('/home');
     expect(mainOutlet.innerHTML).toContain('Home');
     expect(sidebarOutlet.innerHTML).toContain('Home sidebar');
 
-    
+
     await router.push('/about');
     expect(mainOutlet.innerHTML).toContain('About');
     expect(sidebarOutlet.innerHTML).toBe('');
   });
 
-  
+
 
   test('guard check still works with named outlets', async () => {
     const outlet = document.createElement('div');
@@ -1607,7 +1778,7 @@ describe('Router — Named Outlets', () => {
     router.register('/login', loginTpl);
     await router.push('/protected');
 
-    
+
     expect(router.current.path).toBe('/login');
     expect(outlet.innerHTML).toContain('Login page');
   });

@@ -1,34 +1,34 @@
 <!-- Data Fetching — from data-fetching.md -->
 
 <section class="hero-section">
-  <span class="badge" t="docs.dataFetching.hero.badge">Guides</span>
-  <h1 class="hero-title" t="docs.dataFetching.hero.title">Data Fetching</h1>
-  <p class="hero-subtitle" t="docs.dataFetching.hero.subtitle">Declarative HTTP requests — just add attributes to HTML elements</p>
+  <span class="badge" t="docs.dataFetching.hero.badge"></span>
+  <h1 class="hero-title" t="docs.dataFetching.hero.title"></h1>
+  <p class="hero-subtitle" t="docs.dataFetching.hero.subtitle"></p>
 </section>
 
 <div class="doc-content">
 
   <!-- Base URL -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.dataFetching.baseUrl.title">Base URL</h2>
-    <p class="doc-text" t="docs.dataFetching.baseUrl.text1">Set once on any ancestor element. All descendant <code>get</code>, <code>post</code>, etc. resolve relative URLs against it.</p>
+    <h2 class="doc-title" t="docs.dataFetching.baseUrl.title"></h2>
+    <p class="doc-text" t="docs.dataFetching.baseUrl.text1"></p>
     <div class="code-block"><pre><span class="hl-tag">&lt;body</span> <span class="hl-attr">base</span>=<span class="hl-str">"https://api.myapp.com/v1"</span><span class="hl-tag">&gt;</span>
   <span class="hl-tag">&lt;div</span> <span class="hl-attr">get</span>=<span class="hl-str">"/users"</span><span class="hl-tag">&gt;</span>...<span class="hl-tag">&lt;/div&gt;</span>        <span class="hl-cmt">&lt;!-- → https://api.myapp.com/v1/users --&gt;</span>
   <span class="hl-tag">&lt;div</span> <span class="hl-attr">get</span>=<span class="hl-str">"/posts"</span><span class="hl-tag">&gt;</span>...<span class="hl-tag">&lt;/div&gt;</span>        <span class="hl-cmt">&lt;!-- → https://api.myapp.com/v1/posts --&gt;</span>
 <span class="hl-tag">&lt;/body&gt;</span></pre></div>
 
-    <p class="doc-text" t="docs.dataFetching.baseUrl.text2">Override for specific sections:</p>
+    <p class="doc-text" t="docs.dataFetching.baseUrl.text2"></p>
     <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">base</span>=<span class="hl-str">"https://cms.myapp.com/api"</span><span class="hl-tag">&gt;</span>
   <span class="hl-tag">&lt;div</span> <span class="hl-attr">get</span>=<span class="hl-str">"/articles"</span><span class="hl-tag">&gt;</span>...<span class="hl-tag">&lt;/div&gt;</span>
 <span class="hl-tag">&lt;/div&gt;</span></pre></div>
 
-    <p class="doc-text" t="docs.dataFetching.baseUrl.text3">Absolute URLs skip base resolution:</p>
+    <p class="doc-text" t="docs.dataFetching.baseUrl.text3"></p>
     <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">get</span>=<span class="hl-str">"https://other-api.com/data"</span><span class="hl-tag">&gt;</span>...<span class="hl-tag">&lt;/div&gt;</span></pre></div>
   </div>
 
   <!-- Programmatic Configuration -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.dataFetching.config.title">Programmatic Configuration</h2>
+    <h2 class="doc-title" t="docs.dataFetching.config.title"></h2>
     <div class="code-block"><pre><span class="hl-tag">&lt;script&gt;</span>
   <span class="hl-fn">NoJS</span>.<span class="hl-fn">config</span>({
     <span class="hl-attr">baseApiUrl</span>: <span class="hl-str">'https://api.myapp.com/v1'</span>,
@@ -45,7 +45,7 @@
 
   <!-- Per-Request Headers -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.dataFetching.headers.title">Per-Request Headers</h2>
+    <h2 class="doc-title" t="docs.dataFetching.headers.title"></h2>
     <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">get</span>=<span class="hl-str">"/me"</span>
      <span class="hl-attr">headers</span>=<span class="hl-str">'{"Authorization": "Bearer abc123"}'</span>
      <span class="hl-attr">as</span>=<span class="hl-str">"user"</span><span class="hl-tag">&gt;</span>
@@ -54,33 +54,33 @@
 
   <!-- GET -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.dataFetching.get.title">get — Fetch and Render Data</h2>
+    <h2 class="doc-title" t="docs.dataFetching.get.title"></h2>
     <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">get</span>=<span class="hl-str">"/users"</span> <span class="hl-attr">as</span>=<span class="hl-str">"users"</span><span class="hl-tag">&gt;</span>
   <span class="hl-cmt">&lt;!-- `users` is now available in this scope --&gt;</span>
 <span class="hl-tag">&lt;/div&gt;</span></pre></div>
 
-    <h3 class="doc-title" t="docs.dataFetching.get.attributesTitle">Attributes</h3>
+    <h3 class="doc-title" t="docs.dataFetching.get.attributesTitle"></h3>
     <table class="doc-table">
-      <thead><tr><th t="docs.dataFetching.get.col1">Attribute</th><th t="docs.dataFetching.get.col2">Type</th><th t="docs.dataFetching.get.col3">Description</th></tr></thead>
+      <thead><tr><th t="docs.dataFetching.get.col1"></th><th t="docs.dataFetching.get.col2"></th><th t="docs.dataFetching.get.col3"></th></tr></thead>
       <tbody>
-        <tr><td><code>get</code></td><td>string</td><td t="docs.dataFetching.get.get">URL to fetch (GET request)</td></tr>
-        <tr><td><code>as</code></td><td>string</td><td t="docs.dataFetching.get.as">Name to assign the response in the context. Default: <code>"data"</code></td></tr>
-        <tr><td><code>loading</code></td><td>string</td><td t="docs.dataFetching.get.loading">Template ID to show while loading (e.g. <code>"#skeleton"</code>)</td></tr>
-        <tr><td><code>error</code></td><td>string</td><td t="docs.dataFetching.get.error">Template ID to show on fetch error</td></tr>
-        <tr><td><code>empty</code></td><td>string</td><td t="docs.dataFetching.get.empty">Template ID to show when response is empty array/null</td></tr>
-        <tr><td><code>refresh</code></td><td>number</td><td t="docs.dataFetching.get.refresh">Auto-refresh interval in ms (polling)</td></tr>
-        <tr><td><code>cached</code></td><td>boolean|string</td><td t="docs.dataFetching.get.cached">Cache responses. <code>cached</code> = memory, <code>cached="local"</code> = localStorage, <code>cached="session"</code> = sessionStorage</td></tr>
-        <tr><td><code>into</code></td><td>string</td><td t="docs.dataFetching.get.into">Write response to a named global store</td></tr>
-        <tr><td><code>debounce</code></td><td>number</td><td t="docs.dataFetching.get.debounce">Debounce in ms (useful with reactive URLs)</td></tr>
-        <tr><td><code>headers</code></td><td>string</td><td t="docs.dataFetching.get.headers">JSON string of additional headers</td></tr>
-        <tr><td><code>params</code></td><td>string</td><td t="docs.dataFetching.get.params">Expression that resolves to query params object</td></tr>
+        <tr><td><code>get</code></td><td>string</td><td t="docs.dataFetching.get.get"></td></tr>
+        <tr><td><code>as</code></td><td>string</td><td t="docs.dataFetching.get.as"></td></tr>
+        <tr><td><code>loading</code></td><td>string</td><td t="docs.dataFetching.get.loading"></td></tr>
+        <tr><td><code>error</code></td><td>string</td><td t="docs.dataFetching.get.error"></td></tr>
+        <tr><td><code>empty</code></td><td>string</td><td t="docs.dataFetching.get.empty"></td></tr>
+        <tr><td><code>refresh</code></td><td>number</td><td t="docs.dataFetching.get.refresh"></td></tr>
+        <tr><td><code>cached</code></td><td>boolean|string</td><td t="docs.dataFetching.get.cached"></td></tr>
+        <tr><td><code>into</code></td><td>string</td><td t="docs.dataFetching.get.into"></td></tr>
+        <tr><td><code>debounce</code></td><td>number</td><td t="docs.dataFetching.get.debounce"></td></tr>
+        <tr><td><code>headers</code></td><td>string</td><td t="docs.dataFetching.get.headers"></td></tr>
+        <tr><td><code>params</code></td><td>string</td><td t="docs.dataFetching.get.params"></td></tr>
       </tbody>
     </table>
   </div>
 
   <!-- Full Example -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.dataFetching.fullExample.title">Full Example</h2>
+    <h2 class="doc-title" t="docs.dataFetching.fullExample.title"></h2>
     <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">get</span>=<span class="hl-str">"/users"</span>
      <span class="hl-attr">as</span>=<span class="hl-str">"users"</span>
      <span class="hl-attr">loading</span>=<span class="hl-str">"#usersSkeleton"</span>
@@ -108,8 +108,8 @@
 
   <!-- Reactive URLs -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.dataFetching.reactiveUrls.title">Reactive URLs</h2>
-    <p class="doc-text" t="docs.dataFetching.reactiveUrls.text">URLs that reference state variables re-fetch automatically when those values change.</p>
+    <h2 class="doc-title" t="docs.dataFetching.reactiveUrls.title"></h2>
+    <p class="doc-text" t="docs.dataFetching.reactiveUrls.text"></p>
     <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">state</span>=<span class="hl-str">"{ page: 1, search: '' }"</span><span class="hl-tag">&gt;</span>
   <span class="hl-tag">&lt;input</span> <span class="hl-attr">type</span>=<span class="hl-str">"text"</span> <span class="hl-attr">bind-value</span>=<span class="hl-str">"search"</span>
          <span class="hl-attr">on:input</span>=<span class="hl-str">"search = $event.target.value"</span> <span class="hl-tag">/&gt;</span>
@@ -124,10 +124,10 @@
 
   <!-- POST / PUT / PATCH / DELETE -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.dataFetching.mutations.title">post, put, patch, delete — Mutating Requests</h2>
-    <p class="doc-text" t="docs.dataFetching.mutations.text">Used on forms or triggered via <code>call</code>.</p>
+    <h2 class="doc-title" t="docs.dataFetching.mutations.title"></h2>
+    <p class="doc-text" t="docs.dataFetching.mutations.text"></p>
 
-    <h3 class="doc-title" t="docs.dataFetching.mutations.formSubmissionTitle">Form Submission</h3>
+    <h3 class="doc-title" t="docs.dataFetching.mutations.formSubmissionTitle"></h3>
     <div class="code-block"><pre><span class="hl-tag">&lt;form</span> <span class="hl-attr">post</span>=<span class="hl-str">"/login"</span>
       <span class="hl-attr">success</span>=<span class="hl-str">"#loginSuccess"</span>
       <span class="hl-attr">error</span>=<span class="hl-str">"#loginError"</span>
@@ -145,7 +145,7 @@
   <span class="hl-tag">&lt;p</span> <span class="hl-attr">class</span>=<span class="hl-str">"error"</span> <span class="hl-attr">bind</span>=<span class="hl-str">"err.message"</span><span class="hl-tag">&gt;&lt;/p&gt;</span>
 <span class="hl-tag">&lt;/template&gt;</span></pre></div>
 
-    <h3 class="doc-title" t="docs.dataFetching.mutations.putPatchDeleteTitle">PUT / PATCH / DELETE</h3>
+    <h3 class="doc-title" t="docs.dataFetching.mutations.putPatchDeleteTitle"></h3>
     <div class="code-block"><pre><span class="hl-tag">&lt;form</span> <span class="hl-attr">put</span>=<span class="hl-str">"/users/{user.id}"</span>
       <span class="hl-attr">body</span>=<span class="hl-str">'{"name": "{user.name}", "role": "{selectedRole}"}'</span>
       <span class="hl-attr">success</span>=<span class="hl-str">"#updateSuccess"</span><span class="hl-tag">&gt;</span>
@@ -163,27 +163,27 @@
 
   <!-- Mutation Attributes -->
   <div class="doc-section">
-    <h3 class="doc-title" t="docs.dataFetching.mutationAttrs.title">Mutation Attributes</h3>
+    <h3 class="doc-title" t="docs.dataFetching.mutationAttrs.title"></h3>
     <table class="doc-table">
-      <thead><tr><th t="docs.dataFetching.mutationAttrs.col1">Attribute</th><th t="docs.dataFetching.mutationAttrs.col2">Description</th></tr></thead>
+      <thead><tr><th t="docs.dataFetching.mutationAttrs.col1"></th><th t="docs.dataFetching.mutationAttrs.col2"></th></tr></thead>
       <tbody>
-        <tr><td><code>post</code>, <code>put</code>, <code>patch</code>, <code>delete</code></td><td t="docs.dataFetching.mutationAttrs.method">URL for the request</td></tr>
-        <tr><td><code>body</code></td><td t="docs.dataFetching.mutationAttrs.body">Request body (JSON string with interpolation). For forms, auto-serializes fields</td></tr>
-        <tr><td><code>success</code></td><td t="docs.dataFetching.mutationAttrs.success">Template ID to render on success. Receives response as <code>var</code></td></tr>
-        <tr><td><code>error</code></td><td t="docs.dataFetching.mutationAttrs.error">Template ID to render on error. Receives error as <code>var</code></td></tr>
-        <tr><td><code>loading</code></td><td t="docs.dataFetching.mutationAttrs.loading">Template ID to show during request</td></tr>
-        <tr><td><code>confirm</code></td><td t="docs.dataFetching.mutationAttrs.confirm">Show browser <code>confirm()</code> dialog before sending</td></tr>
-        <tr><td><code>redirect</code></td><td t="docs.dataFetching.mutationAttrs.redirect">URL to navigate to on success (SPA route)</td></tr>
-        <tr><td><code>then</code></td><td t="docs.dataFetching.mutationAttrs.then">Expression to execute on success (e.g. <code>"users.push(result)"</code>)</td></tr>
-        <tr><td><code>into</code></td><td t="docs.dataFetching.mutationAttrs.into">Write response to a named global store</td></tr>
-        <tr><td><code>cached</code></td><td t="docs.dataFetching.mutationAttrs.cached">Cache responses (memory/local/session). <em>Note: caching only applies to GET requests.</em></td></tr>
+        <tr><td><code>post</code>, <code>put</code>, <code>patch</code>, <code>delete</code></td><td t="docs.dataFetching.mutationAttrs.method"></td></tr>
+        <tr><td><code>body</code></td><td t="docs.dataFetching.mutationAttrs.body"></td></tr>
+        <tr><td><code>success</code></td><td t="docs.dataFetching.mutationAttrs.success"></td></tr>
+        <tr><td><code>error</code></td><td t="docs.dataFetching.mutationAttrs.error"></td></tr>
+        <tr><td><code>loading</code></td><td t="docs.dataFetching.mutationAttrs.loading"></td></tr>
+        <tr><td><code>confirm</code></td><td t="docs.dataFetching.mutationAttrs.confirm"></td></tr>
+        <tr><td><code>redirect</code></td><td t="docs.dataFetching.mutationAttrs.redirect"></td></tr>
+        <tr><td><code>then</code></td><td t="docs.dataFetching.mutationAttrs.then"></td></tr>
+        <tr><td><code>into</code></td><td t="docs.dataFetching.mutationAttrs.into"></td></tr>
+        <tr><td><code>cached</code></td><td t="docs.dataFetching.mutationAttrs.cached"></td></tr>
       </tbody>
     </table>
   </div>
 
   <!-- Request Lifecycle -->
   <div class="doc-section">
-    <h3 class="doc-title" t="docs.dataFetching.lifecycle.title">Request Lifecycle</h3>
+    <h3 class="doc-title" t="docs.dataFetching.lifecycle.title"></h3>
     <div class="code-block"><pre><span class="hl-cmt">[idle] → [loading] → [success | error]</span>
 <span class="hl-cmt">                        ↓         ↓</span>
 <span class="hl-cmt">                   render tpl   render tpl</span>
@@ -193,7 +193,7 @@
 
   <!-- Live Demo -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.dataFetching.liveDemo.title">Live Demo — API Fetch</h2>
+    <h2 class="doc-title" t="docs.dataFetching.liveDemo.title"></h2>
     <div class="demo-split">
       <div class="demo-code">
         <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">get</span>=<span class="hl-str">"https://jsonplaceholder.typicode.com/users?_limit=3"</span>
@@ -205,7 +205,7 @@
 <span class="hl-tag">&lt;/div&gt;</span></pre></div>
       </div>
       <div class="demo-preview">
-        <span class="demo-result-label" t="docs.dataFetching.liveDemo.label">Result</span>
+        <span class="demo-result-label" t="docs.dataFetching.liveDemo.label"></span>
         <div get="https://jsonplaceholder.typicode.com/users?_limit=3" as="users">
           <div each="user in users" style="padding: 8px 0; border-bottom: 1px solid var(--border);">
             <strong bind="user.name"></strong><br>

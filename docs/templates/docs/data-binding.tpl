@@ -1,17 +1,17 @@
 <!-- Data Binding — from data-binding.md -->
 
 <section class="hero-section">
-  <span class="badge" t="docs.dataBinding.hero.badge">Guides</span>
-  <h1 class="hero-title" t="docs.dataBinding.hero.title">Data Binding</h1>
-  <p class="hero-subtitle" t="docs.dataBinding.hero.subtitle">One-way and two-way data binding with bind and model</p>
+  <span class="badge" t="docs.dataBinding.hero.badge"></span>
+  <h1 class="hero-title" t="docs.dataBinding.hero.title"></h1>
+  <p class="hero-subtitle" t="docs.dataBinding.hero.subtitle"></p>
 </section>
 
 <div class="doc-content">
 
   <!-- bind -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.dataBinding.bind.title">bind — Text Content</h2>
-    <p class="doc-text" t="docs.dataBinding.bind.text">Replaces the element's <code>textContent</code> with the evaluated expression.</p>
+    <h2 class="doc-title" t="docs.dataBinding.bind.title"></h2>
+    <p class="doc-text" t="docs.dataBinding.bind.text"></p>
     <div class="code-block"><pre><span class="hl-tag">&lt;span</span> <span class="hl-attr">bind</span>=<span class="hl-str">"user.name"</span><span class="hl-tag">&gt;&lt;/span&gt;</span>
 <span class="hl-tag">&lt;span</span> <span class="hl-attr">bind</span>=<span class="hl-str">"user.age + ' years old'"</span><span class="hl-tag">&gt;&lt;/span&gt;</span>
 <span class="hl-tag">&lt;span</span> <span class="hl-attr">bind</span>=<span class="hl-str">"items.length === 0 ? 'Empty' : items.length + ' items'"</span><span class="hl-tag">&gt;&lt;/span&gt;</span></pre></div>
@@ -19,17 +19,17 @@
 
   <!-- bind-html -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.dataBinding.bindHtml.title">bind-html — Inner HTML</h2>
-    <p class="doc-text" t="docs.dataBinding.bindHtml.text">Renders evaluated expression as HTML. Sanitized by default.</p>
+    <h2 class="doc-title" t="docs.dataBinding.bindHtml.title"></h2>
+    <p class="doc-text" t="docs.dataBinding.bindHtml.text"></p>
     <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">bind-html</span>=<span class="hl-str">"article.content"</span><span class="hl-tag">&gt;&lt;/div&gt;</span>
 <span class="hl-tag">&lt;div</span> <span class="hl-attr">bind-html</span>=<span class="hl-str">"`&lt;em&gt;${user.bio}&lt;/em&gt;`"</span><span class="hl-tag">&gt;&lt;/div&gt;</span></pre></div>
-    <div class="callout"><p t="docs.dataBinding.bindHtml.callout">⚠️ Uses built-in regex-based sanitization: strips <code>&lt;script&gt;</code> tags, blocks <code>on*</code> event handlers, and removes <code>javascript:</code> URIs.</p></div>
+    <div class="callout"><p t="docs.dataBinding.bindHtml.callout"></p></div>
   </div>
 
   <!-- bind-* -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.dataBinding.bindAttr.title">bind-* — Attribute Binding</h2>
-    <p class="doc-text" t="docs.dataBinding.bindAttr.text">Bind any HTML attribute dynamically.</p>
+    <h2 class="doc-title" t="docs.dataBinding.bindAttr.title"></h2>
+    <p class="doc-text" t="docs.dataBinding.bindAttr.text"></p>
     <div class="code-block"><pre><span class="hl-cmt">&lt;!-- src, href, alt, title --&gt;</span>
 <span class="hl-tag">&lt;img</span> <span class="hl-attr">bind-src</span>=<span class="hl-str">"user.avatarUrl"</span>
      <span class="hl-attr">bind-alt</span>=<span class="hl-str">"user.name + ' avatar'"</span> <span class="hl-tag">/&gt;</span>
@@ -48,8 +48,8 @@
 
   <!-- model -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.dataBinding.model.title">model — Two-Way Binding</h2>
-    <p class="doc-text" t="docs.dataBinding.model.text">For form inputs, <code>model</code> creates automatic two-way data binding.</p>
+    <h2 class="doc-title" t="docs.dataBinding.model.title"></h2>
+    <p class="doc-text" t="docs.dataBinding.model.text"></p>
     <div class="demo-split">
       <div class="demo-code"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">state</span>=<span class="hl-str">"{ name: '', agreed: false }"</span><span class="hl-tag">&gt;</span>
   <span class="hl-tag">&lt;input</span> <span class="hl-attr">type</span>=<span class="hl-str">"text"</span> <span class="hl-attr">model</span>=<span class="hl-str">"name"</span> <span class="hl-tag">/&gt;</span>
@@ -58,16 +58,16 @@
   <span class="hl-tag">&lt;p&gt;</span>Hello, <span class="hl-tag">&lt;span</span> <span class="hl-attr">bind</span>=<span class="hl-str">"name"</span><span class="hl-tag">&gt;&lt;/span&gt;&lt;/p&gt;</span>
 <span class="hl-tag">&lt;/div&gt;</span></pre></div>
       <div class="demo-preview" state="{ name: '', agreed: false }">
-        <div class="demo-result-label" t="docs.dataBinding.model.preview">Preview</div>
+        <div class="demo-result-label" t="docs.dataBinding.model.preview"></div>
         <div class="form-group">
-          <label class="form-label" t="docs.dataBinding.model.nameLabel">Name</label>
+          <label class="form-label" t="docs.dataBinding.model.nameLabel"></label>
           <input type="text" model="name" class="input" placeholder="Type your name..." />
         </div>
         <label class="checkbox-label">
-          <input type="checkbox" model="agreed" /> <span t="docs.dataBinding.model.checkbox">I agree</span>
+          <input type="checkbox" model="agreed" /> <span t="docs.dataBinding.model.checkbox"></span>
         </label>
-        <p class="mt-3"><span t="docs.dataBinding.model.helloPrefix">Hello,</span> <strong bind="name || '...'"></strong></p>
-        <p class="text-sm text-muted"><span t="docs.dataBinding.model.agreedLabel">Agreed:</span> <span bind="agreed"></span></p>
+        <p class="mt-3"><span t="docs.dataBinding.model.helloPrefix"></span> <strong bind="name || '...'"></strong></p>
+        <p class="text-sm text-muted"><span t="docs.dataBinding.model.agreedLabel"></span> <span bind="agreed"></span></p>
       </div>
     </div>
   </div>

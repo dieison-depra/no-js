@@ -28,18 +28,19 @@
   <header class="header">
     <a route="/" class="header-logo"><img src="logo.svg" alt="No.JS" class="logo-img"><span class="logo-title">No<span class="logo-dot">.</span>JS</span><span class="header-version" bind="'v' + version"></span></a>
     <nav class="header-nav">
-      <a route="/" t="shell.header.home">Home</a>
-      <a route="/features" t="shell.header.features">Features</a>
-      <a route="/examples" t="shell.header.examples">Examples</a>
-      <a route="/playground" t="shell.header.playground">Playground</a>
-      <a route="/docs" t="shell.header.docs">Docs</a>
+      <a route="/" t="shell.header.home"></a>
+      <a route="/features" t="shell.header.features"></a>
+      <a route="/examples" t="shell.header.examples"></a>
+      <a route="/faq" t="shell.header.faq"></a>
+      <a route="/playground" t="shell.header.playground" lazy="ondemand"></a>
+      <a route="/docs" t="shell.header.docs" lazy="priority"></a>
       <a href="https://github.com/ErickXavier/no-js" target="_blank" class="github-link">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
       </a>
-      <a route="/docs" class="nav-cta" t="shell.header.getStarted">Get Started</a>
+      <a route="/docs" class="nav-cta" t="shell.header.getStarted" lazy="priority"></a>
       <div class="lang-dropdown">
         <button class="lang-dropdown-btn" popovertarget="lang-menu">
-          <span t="shell.flag">🇧🇷</span>
+          <span t="shell.flag"></span>
           <svg class="lang-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
         </button>
         <div id="lang-menu" class="lang-dropdown-menu" popover>
@@ -54,7 +55,7 @@
   </header>
 
   <!-- ═══ Main Content (route outlet — file-based routing) ═══ -->
-  <main route-view src="templates/" route-index="landing" i18n-ns class="content"></main>
+  <main route-view src="templates/" route-index="landing" i18n-ns class="content" transition="slide"></main>
 
   <!-- ═══ PageFooter: #0F172A bg, border-top #1E293B ═══ -->
   <footer class="footer">
@@ -78,22 +79,23 @@
 
     <path class="b" d="m119.5 16h-54l-26 51h18l-27 67 73-67h-18z"/>
 </svg><span class="logo-title">No<span class="logo-dot">.</span>JS</span></div>
-          <p class="footer-desc" t="shell.footer.desc">The HTML-first reactive framework</p>
+          <p class="footer-desc" t="shell.footer.desc"></p>
         </div>
         <div class="footer-cols">
           <div class="footer-col">
-            <h4 t="shell.footer.resources">Resources</h4>
-            <a route="/docs" t="shell.footer.documentation">Documentation</a>
-            <a route="/examples" t="shell.footer.examples">Examples</a>
-            <a route="/docs#cheatsheet" t="shell.footer.apiReference">API Reference</a>
-            <a route="/playground" t="shell.footer.playground">Playground</a>
+            <h4 t="shell.footer.resources"></h4>
+            <a route="/docs" t="shell.footer.documentation"></a>
+            <a route="/examples" t="shell.footer.examples"></a>
+            <a route="/docs#cheatsheet" t="shell.footer.apiReference"></a>
+            <a route="/playground" t="shell.footer.playground"></a>
+            <a route="/faq" t="shell.footer.faq"></a>
             <a href="https://github.com/ErickXavier/no-js" target="_blank">GitHub</a>
           </div>
         </div>
       </div>
       <div class="footer-divider"></div>
       <div class="footer-bottom">
-        <span t="shell.footer.license">2026 No.JS - MIT License</span>
+        <span t="shell.footer.license"></span>
         <span class="footer-version" bind="'No.JS v' + version"></span>
       </div>
     </div>
@@ -187,6 +189,62 @@
         }
         el.addEventListener('input', update);
         update();
+      }
+    });
+
+    // ── FAQ search filter ──
+    document.addEventListener('click', function(e) {
+      var summary = e.target.closest('.faq-question');
+      if (!summary) return;
+      var details = summary.parentElement;
+      if (!details.open || details.classList.contains('faq-closing')) return;
+      e.preventDefault();
+      details.classList.add('faq-closing');
+      var answer = details.querySelector('.faq-answer');
+      answer.addEventListener('animationend', function() {
+        details.open = false;
+        details.classList.remove('faq-closing');
+      }, { once: true });
+    });
+
+    NoJS.directive('faq-filter', {
+      priority: 25,
+      init: function(el, attrName, keysAttr) {
+        var ctx = NoJS.findContext(el);
+        var isGroup = !keysAttr;
+        var keys = isGroup ? [] : keysAttr.split(',').map(function(k) { return k.trim(); });
+        var currentState;
+
+        function update() {
+          var search = NoJS.evaluate('search', ctx);
+          var visible;
+
+          if (!search) {
+            visible = true;
+          } else if (isGroup) {
+            var items = el.querySelectorAll('[faq-filter]:not(section)');
+            visible = Array.prototype.some.call(items, function(item) {
+              return item.style.display !== 'none';
+            });
+          } else {
+            var term = search.toLowerCase();
+            visible = keys.some(function(key) {
+              var text = NoJS.evaluate("$i18n.t('" + key + "')", ctx);
+              if (text && text.toLowerCase().indexOf(term) !== -1) return true;
+              var answerKey = key.replace(/\.question$/, '.answer');
+              var answer = NoJS.evaluate("$i18n.t('" + answerKey + "')", ctx);
+              return answer && answer.toLowerCase().indexOf(term) !== -1;
+            });
+          }
+
+          if (visible !== currentState) {
+            el.style.display = visible ? '' : 'none';
+            currentState = visible;
+          }
+        }
+
+        ctx.$watch(update);
+        if (!isGroup) update();
       }
     });
   </script>

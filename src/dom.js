@@ -161,6 +161,20 @@ export async function _loadTemplateElement(tpl) {
     // Content-include templates: load nested ones now.
     if (!tpl.hasAttribute("route")) {
       await _loadRemoteTemplates(tpl.content || tpl);
+    } else if (useCache && tpl.content) {
+      // Route templates: pre-warm HTML cache for nested subtemplates so
+      // navigation finds cache hits instead of issuing network requests.
+      // Only the HTML is fetched — no DOM processing or skeleton insertion.
+      const nested = tpl.content.querySelectorAll("template[src]");
+      const warmups = [...nested].map((sub) => {
+        const subSrc = sub.getAttribute("src");
+        const subUrl = _resolveTemplateSrc(subSrc, sub);
+        if (_templateHtmlCache.has(subUrl)) return;
+        return fetch(subUrl).then((r) => r.text()).then((h) => {
+          _templateHtmlCache.set(subUrl, h);
+        }).catch(() => {});
+      });
+      Promise.all(warmups);
     }
     // Remove loading placeholder once real content is ready
     if (loadingMarker) loadingMarker.remove();

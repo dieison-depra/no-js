@@ -14,8 +14,6 @@
       "installation": {
         "title": "Installation",
         "cdnSubtitle": "CDN (recommandé)",
-        "npmSubtitle": "NPM",
-        "npmCallout": "init() retourne une Promise — elle charge les templates distants et initialise le routeur avant de traiter les directives. Avec la balise <script> du CDN, cela est géré automatiquement au DOMContentLoaded.",
         "selfHostedSubtitle": "Auto-hébergé",
         "selfHostedText": "Téléchargez dist/iife/no.js et incluez-le avec une balise <script>. C'est un fichier unique, ~20 Ko gzippé."
       },

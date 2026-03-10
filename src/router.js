@@ -242,6 +242,63 @@ export function _createRouter() {
     });
   }
 
+  function _prefetchRoutes() {
+    const outletEls = document.querySelectorAll("[route-view]");
+    for (const outletEl of outletEls) {
+      const rawSrc = outletEl.getAttribute("src") || _config.router.templates || "";
+      if (!rawSrc) continue;
+      const baseSrc = rawSrc.replace(/\/?$/, "/");
+      const ext = outletEl.getAttribute("ext") || _config.router.ext || ".html";
+      const indexName = outletEl.getAttribute("route-index") || "index";
+      const outletName = (outletEl.getAttribute("route-view") || "").trim() || "default";
+
+      // Collect routes from links, keeping most aggressive lazy level per path
+      const routeLazy = new Map();
+      document.querySelectorAll("[route]:not([route-view])").forEach((link) => {
+        const raw = link.getAttribute("route");
+        if (!raw) return;
+        const path = raw.split("?")[0].split("#")[0];
+        const lazy = link.getAttribute("lazy");
+        const prev = routeLazy.get(path);
+        if (!routeLazy.has(path) || lazy === "priority" ||
+            (prev === "ondemand" && lazy !== "ondemand")) {
+          routeLazy.set(path, lazy);
+        }
+      });
+
+      const priorityFetches = [];
+      const backgroundFetches = [];
+
+      for (const [path, lazy] of routeLazy) {
+        if (lazy === "ondemand" || path === current.path) continue;
+        const segment = path === "/" ? indexName : path.replace(/^\//, "");
+        const fullSrc = baseSrc + segment + ext;
+        const cacheKey = outletName + ":" + fullSrc;
+        if (_autoTemplateCache.has(cacheKey)) continue;
+
+        const tpl = document.createElement("template");
+        tpl.setAttribute("src", fullSrc);
+        tpl.setAttribute("route", path);
+        document.body.appendChild(tpl);
+        _autoTemplateCache.set(cacheKey, tpl);
+        _log("[ROUTER] Prefetch:", path, "→", fullSrc, lazy === "priority" ? "(priority)" : "(background)");
+
+        if (outletEl.hasAttribute("i18n-ns")) {
+          tpl.setAttribute("i18n-ns", segment);
+        }
+
+        if (lazy === "priority") priorityFetches.push(tpl);
+        else backgroundFetches.push(tpl);
+      }
+
+      if (priorityFetches.length || backgroundFetches.length) {
+        Promise.all(priorityFetches.map(_loadTemplateElement)).then(() => {
+          backgroundFetches.forEach(_loadTemplateElement);
+        });
+      }
+    }
+  }
+
   const router = {
     get current() {
       return current;
@@ -333,6 +390,9 @@ export function _createRouter() {
           window.location.pathname.replace(_config.router.base, "") || "/";
         await navigate(path, true);
       }
+
+      // Prefetch route templates declared via <a route> links
+      _prefetchRoutes();
     },
   };
 

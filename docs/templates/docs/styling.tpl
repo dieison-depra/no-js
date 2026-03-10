@@ -1,39 +1,39 @@
 <!-- Styling — from styling.md -->
 
 <section class="hero-section">
-  <span class="badge" t="docs.styling.hero.badge">Guides</span>
-  <h1 class="hero-title" t="docs.styling.hero.title">Dynamic Styling</h1>
-  <p class="hero-subtitle" t="docs.styling.hero.subtitle">Toggle CSS classes and inline styles reactively</p>
+  <span class="badge" t="docs.styling.hero.badge"></span>
+  <h1 class="hero-title" t="docs.styling.hero.title"></h1>
+  <p class="hero-subtitle" t="docs.styling.hero.subtitle"></p>
 </section>
 
 <div class="doc-content">
 
   <!-- class-* -->
   <div class="doc-section">
-    <h2 class="doc-title" t-html="docs.styling.classToggle.title">class-* — Toggle Classes</h2>
+    <h2 class="doc-title" t-html="docs.styling.classToggle.title"></h2>
     <div class="code-block"><pre><span class="hl-cmt">&lt;!-- Toggle a single class based on expression --&gt;</span>
 <span class="hl-tag">&lt;div</span> <span class="hl-attr">class-active</span>=<span class="hl-str">"isActive"</span>
      <span class="hl-attr">class-disabled</span>=<span class="hl-str">"!isEnabled"</span>
      <span class="hl-attr">class-highlighted</span>=<span class="hl-str">"score > 90"</span><span class="hl-tag">&gt;</span>
 <span class="hl-tag">&lt;/div&gt;</span></pre></div>
 
-    <h3 class="doc-title" t="docs.styling.classToggle.multiObject">Multiple Classes from Object</h3>
+    <h3 class="doc-title" t="docs.styling.classToggle.multiObject"></h3>
     <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">class-map</span>=<span class="hl-str">"{ active: isActive, 'text-bold': isBold, error: hasError }"</span><span class="hl-tag">&gt;&lt;/div&gt;</span></pre></div>
 
-    <h3 class="doc-title" t="docs.styling.classToggle.fromArray">From Array</h3>
+    <h3 class="doc-title" t="docs.styling.classToggle.fromArray"></h3>
     <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">class-list</span>=<span class="hl-str">"['base-class', isAdmin ? 'admin' : 'user']"</span><span class="hl-tag">&gt;&lt;/div&gt;</span></pre></div>
   </div>
 
   <!-- style-* -->
   <div class="doc-section">
-    <h2 class="doc-title" t-html="docs.styling.inlineStyles.title">style-* — Inline Styles</h2>
+    <h2 class="doc-title" t-html="docs.styling.inlineStyles.title"></h2>
     <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">style-color</span>=<span class="hl-str">"isError ? 'red' : 'green'"</span>
      <span class="hl-attr">style-font-size</span>=<span class="hl-str">"fontSize + 'px'"</span>
      <span class="hl-attr">style-opacity</span>=<span class="hl-str">"isVisible ? 1 : 0.5"</span>
      <span class="hl-attr">style-background</span>=<span class="hl-str">"'linear-gradient(135deg, ' + color1 + ', ' + color2 + ')'"</span><span class="hl-tag">&gt;</span>
 <span class="hl-tag">&lt;/div&gt;</span></pre></div>
 
-    <h3 class="doc-title" t="docs.styling.inlineStyles.fromObject">From Object</h3>
+    <h3 class="doc-title" t="docs.styling.inlineStyles.fromObject"></h3>
     <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">style-map</span>=<span class="hl-str">"{
   color: textColor,
   fontSize: size + 'px',
@@ -43,7 +43,7 @@
 
   <!-- Live Demo -->
   <div class="doc-section">
-    <h2 class="doc-title" t="docs.styling.liveDemo.title">Live Demo — Dynamic Styling</h2>
+    <h2 class="doc-title" t="docs.styling.liveDemo.title"></h2>
     <div class="demo-split">
       <div class="demo-code">
         <div class="code-block"><pre><span class="hl-tag">&lt;div</span> <span class="hl-attr">state</span>=<span class="hl-str">"{ active: false, color: '#0EA5E9' }"</span><span class="hl-tag">&gt;</span>
@@ -55,9 +55,9 @@
 <span class="hl-tag">&lt;/div&gt;</span></pre></div>
       </div>
       <div class="demo-preview">
-        <span class="demo-result-label" t="docs.styling.liveDemo.label">Result</span>
+        <span class="demo-result-label" t="docs.styling.liveDemo.label"></span>
         <div state="{ active: false, color: '#0EA5E9' }">
-          <button class="btn btn-primary btn-sm" on:click="active = !active" style="margin-bottom: 12px;" t="docs.styling.liveDemo.toggleButton">Toggle Active</button>
+          <button class="btn btn-primary btn-sm" on:click="active = !active" style="margin-bottom: 12px;" t="docs.styling.liveDemo.toggleButton"></button>
           <div class-active="active"
                style-color="color"
                style="padding: 16px; border-radius: 8px; border: 2px solid var(--border); transition: all 0.2s;">

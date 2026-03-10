@@ -13833,6 +13833,1238 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "Pxden",
+      "x": 10780,
+      "y": 0,
+      "name": "FAQ Page",
+      "clip": true,
+      "width": 1440,
+      "fill": "#FFFFFF",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "yws3U",
+          "type": "ref",
+          "ref": "BU3E9",
+          "name": "header",
+          "width": "fill_container"
+        },
+        {
+          "id": "beoxu",
+          "type": "ref",
+          "ref": "zZ30X",
+          "name": "hero",
+          "descendants": {
+            "x1nuT": {
+              "content": "Browse Questions"
+            },
+            "3iBsZ": {
+              "content": "Frequently Asked Questions"
+            },
+            "aeLdw": {
+              "content": "Find answers to common questions about No.JS framework, features, and best practices.",
+              "textGrowth": "fixed-width",
+              "width": 600
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "h8Enp",
+          "name": "Search Section",
+          "width": "fill_container",
+          "fill": "#F8FAFC",
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            0,
+            80
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Zaijg",
+              "name": "Search Container",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "padding": [
+                40,
+                0
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "o0iot",
+                  "name": "Search Bar",
+                  "width": 600,
+                  "height": 52,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "thickness": 1.5,
+                    "fill": "#E2E8F0"
+                  },
+                  "gap": 12,
+                  "padding": [
+                    0,
+                    20
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "L2OxK",
+                      "name": "searchIcon",
+                      "fill": "#94A3B8",
+                      "content": "🔍",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "jlWUf",
+                      "name": "searchPlaceholder",
+                      "fill": "#94A3B8",
+                      "content": "Search the FAQ",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "clotX",
+          "name": "Main Content Area",
+          "width": "fill_container",
+          "gap": 48,
+          "padding": [
+            40,
+            80,
+            60,
+            80
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "FMcPJ",
+              "name": "Sidebar",
+              "width": 240,
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "QuZGz",
+                  "name": "sh1",
+                  "fill": "#0F172A",
+                  "content": "Questions",
+                  "fontFamily": "Space Grotesk",
+                  "fontSize": 13,
+                  "fontWeight": "bold",
+                  "letterSpacing": 0.5
+                },
+                {
+                  "id": "vkZoG",
+                  "type": "ref",
+                  "ref": "LLeQe",
+                  "name": "navLink",
+                  "descendants": {
+                    "g1NfQ": {
+                      "content": "Getting Started",
+                      "fill": "#0EA5E9",
+                      "fontWeight": "500"
+                    }
+                  }
+                },
+                {
+                  "id": "AAVPb",
+                  "type": "ref",
+                  "ref": "LLeQe",
+                  "name": "navLink",
+                  "descendants": {
+                    "g1NfQ": {
+                      "content": "Core Concepts"
+                    }
+                  }
+                },
+                {
+                  "id": "Grnpj",
+                  "type": "ref",
+                  "ref": "LLeQe",
+                  "name": "navLink",
+                  "descendants": {
+                    "g1NfQ": {
+                      "content": "Features & Capabilities"
+                    }
+                  }
+                },
+                {
+                  "id": "nUt0M",
+                  "type": "ref",
+                  "ref": "LLeQe",
+                  "name": "navLink",
+                  "descendants": {
+                    "g1NfQ": {
+                      "content": "Performance & Production"
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "yw9U7",
+                  "name": "spacer",
+                  "width": "fill_container",
+                  "height": 16
+                },
+                {
+                  "type": "text",
+                  "id": "1Rqyc",
+                  "name": "sh2",
+                  "fill": "#0F172A",
+                  "content": "Resources",
+                  "fontFamily": "Space Grotesk",
+                  "fontSize": 13,
+                  "fontWeight": "bold",
+                  "letterSpacing": 0.5
+                },
+                {
+                  "id": "mI0jY",
+                  "type": "ref",
+                  "ref": "LLeQe",
+                  "name": "navLink",
+                  "descendants": {
+                    "g1NfQ": {
+                      "content": "Documentation"
+                    }
+                  }
+                },
+                {
+                  "id": "4PPFP",
+                  "type": "ref",
+                  "ref": "LLeQe",
+                  "name": "navLink",
+                  "descendants": {
+                    "g1NfQ": {
+                      "content": "Examples"
+                    }
+                  }
+                },
+                {
+                  "id": "yNHO5",
+                  "type": "ref",
+                  "ref": "LLeQe",
+                  "name": "navLink",
+                  "descendants": {
+                    "g1NfQ": {
+                      "content": "GitHub Discussions"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "8iyN8",
+              "name": "Content Area",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "E3AxD",
+                  "name": "Getting Started Section",
+                  "width": "fill_container",
+                  "fill": "#FFFFFF",
+                  "layout": "vertical",
+                  "padding": [
+                    40,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "lh64H",
+                      "name": "cat1Title",
+                      "fill": "#0F172A",
+                      "content": "Getting Started",
+                      "fontFamily": "Space Grotesk",
+                      "fontSize": 28,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "FL9cy",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "0pUOi",
+                      "name": "Q1 - What is No.JS",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "xJwLl",
+                          "name": "Question Row",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "sNB2F",
+                              "name": "q1t",
+                              "fill": "#0F172A",
+                              "content": "What is No.JS?",
+                              "fontFamily": "Inter",
+                              "fontSize": 18,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "fakMA",
+                              "name": "q1i",
+                              "fill": "#0EA5E9",
+                              "content": "−",
+                              "fontFamily": "Inter",
+                              "fontSize": 24,
+                              "fontWeight": "300"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "UugYs",
+                          "name": "q1a",
+                          "fill": "#64748B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "No.JS is an HTML-first reactive framework that lets you build dynamic web applications using only HTML attributes — no JavaScript compilation, no virtual DOM, no build step required. It weighs just 14 KB gzipped and provides reactivity, routing, data fetching, i18n, animations, and more out of the box.",
+                          "lineHeight": 1.7,
+                          "fontFamily": "Inter",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "AosqB",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "zaPaP",
+                      "name": "Q2 - Install",
+                      "width": "fill_container",
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "jeImq",
+                          "name": "q2t",
+                          "fill": "#0F172A",
+                          "content": "How do I install No.JS?",
+                          "fontFamily": "Inter",
+                          "fontSize": 18,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "yyHAg",
+                          "name": "q2i",
+                          "fill": "#94A3B8",
+                          "content": "+",
+                          "fontFamily": "Inter",
+                          "fontSize": 24,
+                          "fontWeight": "300"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "qxXbY",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "KUt35",
+                      "name": "Q3 - JavaScript",
+                      "width": "fill_container",
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "AIkZx",
+                          "name": "q3t",
+                          "fill": "#0F172A",
+                          "content": "Do I need to know JavaScript to use No.JS?",
+                          "fontFamily": "Inter",
+                          "fontSize": 18,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "7wUsT",
+                          "name": "q3i",
+                          "fill": "#94A3B8",
+                          "content": "+",
+                          "fontFamily": "Inter",
+                          "fontSize": 24,
+                          "fontWeight": "300"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "H5dAY",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "mQYfq",
+                      "name": "Q4 - Browsers",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "YZigH",
+                          "name": "Question Row",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "9sYJr",
+                              "name": "q4t",
+                              "fill": "#0F172A",
+                              "content": "What browsers are supported?",
+                              "fontFamily": "Inter",
+                              "fontSize": 18,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "BshQ4",
+                              "name": "q4i",
+                              "fill": "#0EA5E9",
+                              "content": "−",
+                              "fontFamily": "Inter",
+                              "fontSize": 24,
+                              "fontWeight": "300"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "9pP3N",
+                          "name": "q4a",
+                          "fill": "#64748B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "No.JS supports all modern browsers including Chrome, Firefox, Safari, and Edge. It requires no polyfills and uses standard Web APIs available in all evergreen browsers.",
+                          "lineHeight": 1.7,
+                          "fontFamily": "Inter",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Nf5Zq",
+                  "name": "Core Concepts Section",
+                  "width": "fill_container",
+                  "fill": "#F8FAFC",
+                  "layout": "vertical",
+                  "padding": [
+                    40,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "B4opY",
+                      "name": "cat2Title",
+                      "fill": "#0F172A",
+                      "content": "Core Concepts",
+                      "fontFamily": "Space Grotesk",
+                      "fontSize": 28,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "MYCWV",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ZlO8r",
+                      "name": "Q5 - Reactivity",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "lVkOq",
+                          "name": "Question Row",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "AeODW",
+                              "name": "q5t",
+                              "fill": "#0F172A",
+                              "content": "How does reactivity work in No.JS?",
+                              "fontFamily": "Inter",
+                              "fontSize": 18,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "FDyZD",
+                              "name": "q5i",
+                              "fill": "#0EA5E9",
+                              "content": "−",
+                              "fontFamily": "Inter",
+                              "fontSize": 24,
+                              "fontWeight": "300"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "smrCb",
+                          "name": "q5a",
+                          "fill": "#64748B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "No.JS uses JavaScript Proxy objects to create reactive state. When you declare state with the :state directive, changes automatically propagate to all bound elements in the DOM — no manual updates, no setState calls, no re-renders needed.",
+                          "lineHeight": 1.7,
+                          "fontFamily": "Inter",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "jEkKB",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "wXEY2",
+                      "name": "Q6 - Directives",
+                      "width": "fill_container",
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "smAMo",
+                          "name": "q6t",
+                          "fill": "#0F172A",
+                          "content": "What are directives?",
+                          "fontFamily": "Inter",
+                          "fontSize": 18,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "yCBDa",
+                          "name": "q6i",
+                          "fill": "#94A3B8",
+                          "content": "+",
+                          "fontFamily": "Inter",
+                          "fontSize": 24,
+                          "fontWeight": "300"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ZeXFf",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "MXAsJ",
+                      "name": "Q7 - Existing Projects",
+                      "width": "fill_container",
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "DGiFJ",
+                          "name": "q7t",
+                          "fill": "#0F172A",
+                          "content": "Can I use No.JS with existing projects?",
+                          "fontFamily": "Inter",
+                          "fontSize": 18,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "ey81E",
+                          "name": "q7i",
+                          "fill": "#94A3B8",
+                          "content": "+",
+                          "fontFamily": "Inter",
+                          "fontSize": 24,
+                          "fontWeight": "300"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "y9p9W",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "17vcZ",
+                      "name": "Q8 - Comparison",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "TEmjz",
+                          "name": "Question Row",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "NDAJ9",
+                              "name": "q8t",
+                              "fill": "#0F172A",
+                              "content": "How does No.JS compare to React or Vue?",
+                              "fontFamily": "Inter",
+                              "fontSize": 18,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "GZrft",
+                              "name": "q8i",
+                              "fill": "#0EA5E9",
+                              "content": "−",
+                              "fontFamily": "Inter",
+                              "fontSize": 24,
+                              "fontWeight": "300"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "2oHF8",
+                          "name": "q8a",
+                          "fill": "#64748B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Unlike React or Vue, No.JS requires no build step, no virtual DOM, and no JavaScript files. You write everything in HTML attributes. The result is dramatically smaller bundles (14 KB vs 100+ KB) and simpler deployment — just ship HTML.",
+                          "lineHeight": 1.7,
+                          "fontFamily": "Inter",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "zUpRM",
+                  "name": "Features Section",
+                  "width": "fill_container",
+                  "fill": "#FFFFFF",
+                  "layout": "vertical",
+                  "padding": [
+                    40,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "o68xL",
+                      "name": "cat3Title",
+                      "fill": "#0F172A",
+                      "content": "Features & Capabilities",
+                      "fontFamily": "Space Grotesk",
+                      "fontSize": 28,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "coa1s",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "NMl95",
+                      "name": "Q9 - Routing",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "OuPdj",
+                          "name": "Question Row",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "tfOES",
+                              "name": "q9t",
+                              "fill": "#0F172A",
+                              "content": "Does No.JS support client-side routing?",
+                              "fontFamily": "Inter",
+                              "fontSize": 18,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Gqklt",
+                              "name": "q9i",
+                              "fill": "#0EA5E9",
+                              "content": "−",
+                              "fontFamily": "Inter",
+                              "fontSize": 24,
+                              "fontWeight": "300"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "44L1G",
+                          "name": "q9a",
+                          "fill": "#64748B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Yes. No.JS includes a built-in SPA router with support for path parameters, query strings, hash-based routing, and file-based route loading. Define routes with simple HTML attributes — no configuration files needed.",
+                          "lineHeight": 1.7,
+                          "fontFamily": "Inter",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "RZ1iy",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ejnZD",
+                      "name": "Q10 - API",
+                      "width": "fill_container",
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "J0VV9",
+                          "name": "q10t",
+                          "fill": "#0F172A",
+                          "content": "Can I fetch data from APIs?",
+                          "fontFamily": "Inter",
+                          "fontSize": 18,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "H4IGJ",
+                          "name": "q10i",
+                          "fill": "#94A3B8",
+                          "content": "+",
+                          "fontFamily": "Inter",
+                          "fontSize": 24,
+                          "fontWeight": "300"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "iwMus",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "KmvVJ",
+                      "name": "Q11 - i18n",
+                      "width": "fill_container",
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Ze2iR",
+                          "name": "q11t",
+                          "fill": "#0F172A",
+                          "content": "Is internationalization (i18n) supported?",
+                          "fontFamily": "Inter",
+                          "fontSize": 18,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "g2dlc",
+                          "name": "q11i",
+                          "fill": "#94A3B8",
+                          "content": "+",
+                          "fontFamily": "Inter",
+                          "fontSize": 24,
+                          "fontWeight": "300"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "05Akk",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "vui1l",
+                      "name": "Q12 - Validation",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "3rIFf",
+                          "name": "Question Row",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "XcjCM",
+                              "name": "q12t",
+                              "fill": "#0F172A",
+                              "content": "How do I handle form validation?",
+                              "fontFamily": "Inter",
+                              "fontSize": 18,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "thWmd",
+                              "name": "q12i",
+                              "fill": "#0EA5E9",
+                              "content": "−",
+                              "fontFamily": "Inter",
+                              "fontSize": 24,
+                              "fontWeight": "300"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "D0o1d",
+                          "name": "q12a",
+                          "fill": "#64748B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "No.JS provides declarative form validation through the :validate directive. You can define rules, custom error messages, and validation patterns directly in your HTML markup — including required fields, min/max length, email format, and custom regex.",
+                          "lineHeight": 1.7,
+                          "fontFamily": "Inter",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "xRSvj",
+                  "name": "Performance Section",
+                  "width": "fill_container",
+                  "fill": "#F8FAFC",
+                  "layout": "vertical",
+                  "padding": [
+                    40,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "DzxWB",
+                      "name": "cat4Title",
+                      "fill": "#0F172A",
+                      "content": "Performance & Production",
+                      "fontFamily": "Space Grotesk",
+                      "fontSize": 28,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "a4DKv",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "8Z91X",
+                      "name": "Q13 - Bundle Size",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "amCeS",
+                          "name": "Question Row",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "NnzVC",
+                              "name": "q13t",
+                              "fill": "#0F172A",
+                              "content": "How big is the No.JS bundle?",
+                              "fontFamily": "Inter",
+                              "fontSize": 18,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "oLyU2",
+                              "name": "q13i",
+                              "fill": "#0EA5E9",
+                              "content": "−",
+                              "fontFamily": "Inter",
+                              "fontSize": 24,
+                              "fontWeight": "300"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "FBrNZ",
+                          "name": "q13a",
+                          "fill": "#64748B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "The complete No.JS framework is approximately 14 KB gzipped. This includes all features: reactivity, routing, data fetching, i18n, animations, drag & drop, and form validation. Compare that to React (44 KB) + React DOM (130 KB).",
+                          "lineHeight": 1.7,
+                          "fontFamily": "Inter",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "DmUUT",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "0sbo8",
+                      "name": "Q14 - Production",
+                      "width": "fill_container",
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "8NSk6",
+                          "name": "q14t",
+                          "fill": "#0F172A",
+                          "content": "Is No.JS production-ready?",
+                          "fontFamily": "Inter",
+                          "fontSize": 18,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "caWza",
+                          "name": "q14i",
+                          "fill": "#94A3B8",
+                          "content": "+",
+                          "fontFamily": "Inter",
+                          "fontSize": 24,
+                          "fontWeight": "300"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "fIUa0",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Gd6EY",
+                      "name": "Q15 - CDN",
+                      "width": "fill_container",
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "KYAln",
+                          "name": "q15t",
+                          "fill": "#0F172A",
+                          "content": "Can I use No.JS from a CDN?",
+                          "fontFamily": "Inter",
+                          "fontSize": 18,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Isluo",
+                          "name": "q15i",
+                          "fill": "#94A3B8",
+                          "content": "+",
+                          "fontFamily": "Inter",
+                          "fontSize": 24,
+                          "fontWeight": "300"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "NUF1l",
+                      "name": "divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#E2E8F0"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Ve4jZ",
+                      "name": "Q16 - Build Step",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": [
+                        24,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "aV0VV",
+                          "name": "Question Row",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "osKZL",
+                              "name": "q16t",
+                              "fill": "#0F172A",
+                              "content": "Do I need a build step?",
+                              "fontFamily": "Inter",
+                              "fontSize": 18,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "5R3eh",
+                              "name": "q16i",
+                              "fill": "#0EA5E9",
+                              "content": "−",
+                              "fontFamily": "Inter",
+                              "fontSize": 24,
+                              "fontWeight": "300"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "pxQSV",
+                          "name": "q16a",
+                          "fill": "#64748B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "No. No.JS works directly in the browser with a single script tag. There's no compilation, transpilation, or bundling required. Just include the CDN link and start building. Your deployment is as simple as uploading HTML files.",
+                          "lineHeight": 1.7,
+                          "fontFamily": "Inter",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "Ax1DF",
+          "type": "ref",
+          "ref": "CaSRr",
+          "name": "ctaSection",
+          "descendants": {
+            "GZpIo": {
+              "content": "Still Have Questions?"
+            },
+            "bCVoG": {
+              "content": "Check out the documentation or join the community for help."
+            },
+            "VDbZ0": {
+              "content": "View Documentation"
+            },
+            "FdLAq": {
+              "content": "GitHub Discussions"
+            }
+          }
+        },
+        {
+          "id": "gZRaL",
+          "type": "ref",
+          "ref": "OIXap",
+          "name": "footer",
+          "width": "fill_container"
+        }
+      ]
     }
   ]
 }
