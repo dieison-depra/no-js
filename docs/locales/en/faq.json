@@ -18,7 +18,8 @@
       "resources": "Resources",
       "documentation": "Documentation",
       "examples": "Examples",
-      "discussions": "GitHub Discussions"
+      "discussions": "GitHub Discussions",
+      "discord": "Discord Community"
     },
     "gettingStarted": {
       "title": "Getting Started",
@@ -100,7 +101,8 @@
       "title": "Still Have Questions?",
       "subtitle": "Check the documentation or join the community.",
       "docs": "View Documentation",
-      "discussions": "GitHub Discussions"
+      "discussions": "GitHub Discussions",
+      "discord": "Discord Community"
     }
   }
 }

@@ -1,4 +1,6 @@
-# No.JS
+<h1>
+  <img src="docs/logo-dark-round.png" alt="No.JS" width="26" style="vertical-align: middle; margin-top: -6px;"> No.JS
+</h1>
 
 **The HTML-First Reactive Framework**
 
@@ -136,9 +138,18 @@ Full documentation is available in the [docs/](docs/) folder:
 
 ---
 
+## Community
+
+Join the conversation and get help:
+
+- [Discord](https://discord.gg/CaSbGYg3xY)
+- [GitHub Discussions](https://github.com/ErickXavier/no-js/discussions)
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request.
+
+- [Changelog](CHANGELOG.md)
 
 ## License
 

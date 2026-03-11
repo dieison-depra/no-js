@@ -23,6 +23,7 @@
           <a route="/docs" class="sidebar-link" t="faq.sidebar.documentation"></a>
           <a route="/examples" class="sidebar-link" t="faq.sidebar.examples"></a>
           <a href="https://github.com/ErickXavier/no-js/discussions" target="_blank" class="sidebar-link" t="faq.sidebar.discussions"></a>
+          <a href="https://discord.gg/CaSbGYg3xY" target="_blank" class="sidebar-link" t="faq.sidebar.discord"></a>
         </div>
       </nav>
     </aside>
@@ -154,6 +155,7 @@
   <div class="cta-buttons">
     <a route="/docs" class="btn btn-cta-primary" t="faq.cta.docs"></a>
     <a href="https://github.com/ErickXavier/no-js/discussions" target="_blank" class="btn btn-cta-secondary" t="faq.cta.discussions"></a>
+    <a href="https://discord.gg/CaSbGYg3xY" target="_blank" class="btn btn-cta-secondary" t="faq.cta.discord"></a>
   </div>
 </section>
 </div>

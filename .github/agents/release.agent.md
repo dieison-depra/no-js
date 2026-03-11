@@ -25,6 +25,7 @@ You MUST follow ALL steps below, in order, without skipping any.
 - Short descriptive title on the first line
 - Bullet points in the body detailing the main changes
 - Present the planned message to the user before committing
+- Wait for approval before proceeding to commit
 
 ### 3. BUMP the version
 - Check current version in **both** files:
@@ -33,19 +34,27 @@ You MUST follow ALL steps below, in order, without skipping any.
 - Decide semver increment: patch (x.x.+1), minor (x.+1.0), or major (+1.0.0)
 - Update version in **both** files
 
-### 4. REBUILD
+### 4. UPDATE the CHANGELOG
+- Open `CHANGELOG.md` and add a new section at the top (below the header) for the new version
+- Follow the [Keep a Changelog](https://keepachangelog.com/) format
+- Use `## [x.y.z](https://github.com/ErickXavier/no-js/compare/vPREV...vx.y.z) — YYYY-MM-DD`
+- Categorize changes under **Added**, **Changed**, **Fixed**, or **Removed** as appropriate
+- Include commit short-hash links: `([`abc1234`](https://github.com/ErickXavier/no-js/commit/abc1234))`
+- Keep descriptions concise and user-facing
+
+### 5. REBUILD
 - Run `node build.js`
 - Outputs: `dist/iife/no.js`, `dist/esm/no.js`, `dist/cjs/no.js`
 - Confirm dist files contain the new version: `grep -c "x.y.z" dist/esm/no.js`
 
-### 5. COMMIT
+### 6. COMMIT
 - `git add -A`
 - `git commit -m '<planned message>'`
 
-### 6. PUSH
+### 7. PUSH
 - `git push origin main`
 
-### 7. LOGIN & PUBLISH
+### 8. LOGIN & PUBLISH
 - `npm login`
 - `npm publish --access public`
 - Verify: `npm view @erickxavier/no-js version`
@@ -55,5 +64,6 @@ You MUST follow ALL steps below, in order, without skipping any.
 - DO NOT commit without running tests first
 - DO NOT publish without rebuilding dist files
 - DO NOT forget to update version in BOTH `package.json` AND `src/index.js`
+- DO NOT commit without updating `CHANGELOG.md` with the new version entry
 - DO NOT push without confirming the commit succeeded
 - ALWAYS run `npm login` before `npm publish`
