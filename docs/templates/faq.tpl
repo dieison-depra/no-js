@@ -137,24 +137,6 @@ details[open] > .faq-question {
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.faq-item.faq-closing > .faq-question {
-  color: var(--text);
-}
-.faq-item.faq-closing > .faq-question .faq-chevron::before {
-  background: var(--text-dim);
-}
-.faq-item.faq-closing > .faq-question .faq-chevron::after {
-  transform: translate(-50%, -50%);
-  opacity: 1;
-  background: var(--text-dim);
-}
-.faq-item.faq-closing .faq-answer {
-  animation: faq-slide-out 0.25s ease forwards;
-}
-@keyframes faq-slide-out {
-  from { opacity: 1; transform: translateY(0); }
-  to   { opacity: 0; transform: translateY(-8px); }
-}
 .faq-answer code {
   background: var(--surface);
   padding: 2px 6px;

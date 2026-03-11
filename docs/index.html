@@ -231,21 +231,6 @@
       }
     });
 
-    // ── FAQ search filter ──
-    document.addEventListener('click', function(e) {
-      var summary = e.target.closest('.faq-question');
-      if (!summary) return;
-      var details = summary.parentElement;
-      if (!details.open || details.classList.contains('faq-closing')) return;
-      e.preventDefault();
-      details.classList.add('faq-closing');
-      var answer = details.querySelector('.faq-answer');
-      answer.addEventListener('animationend', function() {
-        details.open = false;
-        details.classList.remove('faq-closing');
-      }, { once: true });
-    });
-
     NoJS.directive('faq-filter', {
       priority: 25,
       init: function(el, attrName, keysAttr) {
