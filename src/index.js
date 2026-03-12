@@ -22,6 +22,7 @@ import { evaluate, resolve } from "./evaluate.js";
 import { findContext, _loadRemoteTemplates, _loadRemoteTemplatesPhase1, _loadRemoteTemplatesPhase2, _processTemplateIncludes } from "./dom.js";
 import { registerDirective, processTree } from "./registry.js";
 import { _createRouter } from "./router.js";
+import { initDevtools } from "./devtools.js";
 
 // Side-effect imports: register built-in filters
 import "./filters.js";
@@ -126,18 +127,7 @@ const NoJS = {
     _loadRemoteTemplatesPhase2();
 
     // DevTools integration
-    if (_config.devtools && typeof window !== "undefined") {
-      window.__NOJS_DEVTOOLS__ = {
-        stores: _stores,
-        config: _config,
-        refs: _refs,
-        router: _routerInstance,
-        filters: Object.keys(_filters),
-        validators: Object.keys(_validators),
-        version: NoJS.version,
-      };
-      _log("DevTools enabled — access via window.__NOJS_DEVTOOLS__");
-    }
+    initDevtools(NoJS);
   },
 
   // Register custom directive
@@ -218,7 +208,7 @@ const NoJS = {
   resolve,
 
   // Version
-  version: "1.5.2",
+  version: "1.6.0",
 };
 
 export default NoJS;

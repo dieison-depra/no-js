@@ -8,6 +8,7 @@ import { evaluate } from "./evaluate.js";
 import { findContext, _clearDeclared, _loadTemplateElement, _processTemplateIncludes } from "./dom.js";
 import { processTree, _disposeTree } from "./registry.js";
 import { _animateIn } from "./animations.js";
+import { _devtoolsEmit } from "./devtools.js";
 
 export function _createRouter() {
   const routes = [];
@@ -100,6 +101,13 @@ export function _createRouter() {
     // Render
     await _renderRoute(matched);
     listeners.forEach((fn) => fn(current));
+
+    _devtoolsEmit("route:navigate", {
+      path: current.path,
+      params: current.params,
+      query: current.query,
+      hash: current.hash,
+    });
 
     // Scroll to anchor if hash is present (e.g. route="/docs#cheatsheet")
     if (current.hash) {

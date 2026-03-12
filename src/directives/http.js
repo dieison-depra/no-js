@@ -16,6 +16,7 @@ import { evaluate, _execStatement, _interpolate } from "../evaluate.js";
 import { _doFetch, _cacheGet, _cacheSet } from "../fetch.js";
 import { findContext, _clearDeclared, _cloneTemplate } from "../dom.js";
 import { registerDirective, processTree } from "../registry.js";
+import { _devtoolsEmit } from "../devtools.js";
 
 const HTTP_METHODS = ["get", "post", "put", "patch", "delete"];
 
@@ -199,6 +200,7 @@ for (const method of HTTP_METHODS) {
             _routerInstance.push(redirectPath);
 
           _emitEvent("fetch:success", { url: resolvedUrl, data });
+          _devtoolsEmit("fetch:success", { method, url: resolvedUrl });
         } catch (err) {
           // SwitchMap: silently ignore aborted requests
           if (err.name === "AbortError") return;
@@ -209,6 +211,7 @@ for (const method of HTTP_METHODS) {
           );
           _emitEvent("fetch:error", { url: resolvedUrl, error: err });
           _emitEvent("error", { url: resolvedUrl, error: err });
+          _devtoolsEmit("fetch:error", { method, url: resolvedUrl, error: err.message });
 
           if (errorTpl) {
             const clone = _cloneTemplate(errorTpl);

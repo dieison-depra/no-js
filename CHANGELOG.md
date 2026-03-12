@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0](https://github.com/ErickXavier/no-js/compare/v1.5.2...v1.6.0) — 2026-03-12
+
+### Added
+
+- DevTools Protocol module (`src/devtools.js`) with zero-overhead event emission
+- Context lifecycle tracking: `ctx:created`, `ctx:updated`, `ctx:disposed` events
+- Element inspection API: `inspect(selector)`, `inspectTree(selector)`
+- Store inspection: `inspectStore(name)`, `get:stats`, `get:routes` commands
+- Runtime mutation: `mutate(id, key, value)`, `mutateStore(name, key, value)`
+- Visual highlight overlay for element selection from DevTools
+- Custom event bus: `nojs:devtools` (emit), `nojs:devtools:cmd` (commands)
+- Batch lifecycle events: `batch:start`, `batch:end`
+- Fetch lifecycle events: `fetch:success`, `fetch:error`
+- Route navigation events: `route:navigate`
+- Store creation events: `store:created`
+- Directive init events: `directive:init`
+- Context registry with automatic disposal cleanup
+- `window.__NOJS_DEVTOOLS__` public API with inspect/mutate/highlight/on
+- 428-line DevTools test suite (937 tests total across 14 suites)
+
 ## [1.5.2](https://github.com/ErickXavier/no-js/compare/v1.5.1...v1.5.2) — 2026-03-11
 
 ### Removed

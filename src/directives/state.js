@@ -7,6 +7,7 @@ import { createContext } from "../context.js";
 import { evaluate, _execStatement } from "../evaluate.js";
 import { findContext } from "../dom.js";
 import { registerDirective } from "../registry.js";
+import { _devtoolsEmit } from "../devtools.js";
 
 registerDirective("state", {
   priority: 0,
@@ -63,6 +64,10 @@ registerDirective("store", {
         ? evaluate(valueAttr, createContext()) || {}
         : {};
       _stores[storeName] = createContext(data);
+      _devtoolsEmit("store:created", {
+        name: storeName,
+        keys: Object.keys(data),
+      });
     }
     _log("store", storeName);
   },

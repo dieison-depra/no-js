@@ -2,19 +2,25 @@
 //  REACTIVE CONTEXT
 // ═══════════════════════════════════════════════════════════════════════
 
-import { _stores, _refs, _routerInstance, _currentEl } from "./globals.js";
+import { _config, _stores, _refs, _routerInstance, _currentEl } from "./globals.js";
 import { _i18n } from "./i18n.js";
+import { _devtoolsEmit, _ctxRegistry } from "./devtools.js";
 
 let _batchDepth = 0;
 const _batchQueue = new Set();
+let _ctxId = 0;
+
+export function _resetCtxId() { _ctxId = 0; }
 
 export function _startBatch() {
   _batchDepth++;
+  _devtoolsEmit("batch:start", { depth: _batchDepth });
 }
 
 export function _endBatch() {
   _batchDepth--;
   if (_batchDepth === 0 && _batchQueue.size > 0) {
+    _devtoolsEmit("batch:end", { depth: 0, queueSize: _batchQueue.size });
     const fns = [..._batchQueue];
     _batchQueue.clear();
     fns.forEach((fn) => {
@@ -28,6 +34,7 @@ export function createContext(data = {}, parent = null) {
   const listeners = new Set();
   const raw = {};
   Object.assign(raw, data);
+  if (_config.devtools) raw.__devtoolsId = ++_ctxId;
   let notifying = false;
 
   function notify() {
@@ -94,7 +101,15 @@ export function createContext(data = {}, parent = null) {
     set(target, key, value) {
       const old = target[key];
       target[key] = value;
-      if (old !== value) notify();
+      if (old !== value) {
+        notify();
+        _devtoolsEmit("ctx:updated", {
+          id: target.__devtoolsId,
+          key,
+          oldValue: old,
+          newValue: value,
+        });
+      }
       return true;
     },
     has(target, key) {
@@ -105,6 +120,17 @@ export function createContext(data = {}, parent = null) {
   };
 
   const proxy = new Proxy(raw, handler);
+
+  if (_config.devtools && raw.__devtoolsId) {
+    _ctxRegistry.set(raw.__devtoolsId, proxy);
+    _devtoolsEmit("ctx:created", {
+      id: raw.__devtoolsId,
+      parentId: parent?.__raw?.__devtoolsId ?? null,
+      keys: Object.keys(data),
+      elementTag: _currentEl?.tagName?.toLowerCase() ?? null,
+    });
+  }
+
   return proxy;
 }
 

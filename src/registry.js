@@ -4,6 +4,7 @@
 
 import { _currentEl, _setCurrentEl, _storeWatchers } from "./globals.js";
 import { _i18nListeners } from "./i18n.js";
+import { _devtoolsEmit, _ctxRegistry } from "./devtools.js";
 
 const _directives = new Map();
 
@@ -52,6 +53,13 @@ export function processElement(el) {
     m.init(el, m.name, m.value);
   }
   _setCurrentEl(prev);
+
+  if (matched.length > 0) {
+    _devtoolsEmit("directive:init", {
+      element: el.tagName?.toLowerCase(),
+      directives: matched.map((m) => ({ name: m.name, value: m.value })),
+    });
+  }
 }
 
 export function processTree(root) {
@@ -68,6 +76,8 @@ export function processTree(root) {
 // ─── Disposal: proactive cleanup of watchers/listeners/disposers ────────
 
 function _disposeElement(node) {
+  const ctxId = node.__ctx?.__raw?.__devtoolsId;
+
   if (node.__ctx && node.__ctx.__listeners) {
     for (const fn of node.__ctx.__listeners) {
       _storeWatchers.delete(fn);
@@ -80,6 +90,14 @@ function _disposeElement(node) {
     node.__disposers = null;
   }
   node.__declared = false;
+
+  if (ctxId != null) {
+    _ctxRegistry.delete(ctxId);
+    _devtoolsEmit("ctx:disposed", {
+      id: ctxId,
+      elementTag: node.tagName?.toLowerCase(),
+    });
+  }
 }
 
 export function _disposeTree(root) {
