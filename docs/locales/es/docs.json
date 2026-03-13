@@ -679,6 +679,18 @@
       "rules": {
         "title": "Reglas de Validación"
       },
+      "perRuleErrors": {
+        "title": "Mensajes de Error por Regla",
+        "text": "Use atributos error-{regla} para establecer un mensaje personalizado para una regla específica, o error como respaldo genérico."
+      },
+      "errorTemplates": {
+        "title": "Plantillas de Error",
+        "text": "Apunte un atributo error a un <template> usando el prefijo # para renderizar UI de error enriquecida. Dentro de la plantilla, $error contiene el mensaje y $rule el nombre de la regla que falló."
+      },
+      "errorClass": {
+        "title": "Clase CSS de Error",
+        "text": "Use error-class en el formulario o en campos individuales para alternar una clase CSS cuando un campo es inválido y ha sido tocado."
+      },
       "formContext": {
         "title": "$form — Contexto del Formulario",
         "text": "Dentro de cualquier <form> con el atributo validate, $form proporciona:",
@@ -689,21 +701,53 @@
         "dirty": "true si algún campo ha sido modificado",
         "touched": "true si algún campo ha recibido y perdido el foco",
         "submitting": "true mientras la solicitud está en curso",
+        "pending": "true mientras los validadores asíncronos están en ejecución",
         "errors": "Mapa de nombres de campo → mensajes de error",
         "values": "Valores actuales del formulario",
-        "reset": "Restablecer el formulario a los valores iniciales"
+        "firstError": "Mensaje de error del primer campo inválido (orden del DOM)",
+        "errorCount": "Número de campos que actualmente fallan la validación",
+        "fields": "Objeto de estado por campo (valid, error, dirty, touched)",
+        "reset": "Restablecer el formulario a los valores iniciales, limpiar errores y clases"
+      },
+      "formFields": {
+        "title": "$form.fields — Estado por Campo",
+        "text": "$form.fields expone el estado individual de cada campo indexado por nombre.",
+        "asTitle": "Alias de Campo con as",
+        "asText": "Use el atributo as para exponer el estado de un campo bajo un nombre personalizado en el contexto."
+      },
+      "validateOn": {
+        "title": "Disparadores de Validación (validate-on)",
+        "text": "Por defecto, la validación se ejecuta en input y focusout. Use validate-on para cambiar cuándo aparece el feedback visual.",
+        "note": "Internamente, los datos de $form siempre se mantienen actualizados independientemente de validate-on. El disparador solo controla cuándo se muestra el feedback visual."
+      },
+      "validateIf": {
+        "title": "Validación Condicional (validate-if)",
+        "text": "Omita la validación de un campo basándose en una condición. Cuando validate-if evalúa a false, el campo se trata como válido."
+      },
+      "autoDisable": {
+        "title": "Deshabilitar Botones de Envío Automáticamente",
+        "text": "Los botones de envío se deshabilitan automáticamente cuando el formulario es inválido. Los botones con type=\"button\" no se ven afectados."
       },
       "customValidators": {
         "title": "Validadores Personalizados"
       },
       "liveDemo": {
-        "title": "Demo en Vivo — Formulario de Contacto",
+        "title": "Demo en Vivo — Formulario de Registro",
         "label": "Resultado",
-        "namePlaceholder": "Tu nombre",
-        "emailPlaceholder": "Tu correo electrónico",
-        "sendButton": "Enviar",
-        "successMessage": "¡Gracias, {name}!",
-        "thanks": "Gracias,"
+        "usernameLabel": "Usuario",
+        "usernamePlaceholder": "Elige un nombre de usuario",
+        "emailLabel": "Correo electrónico",
+        "emailPlaceholder": "tu@ejemplo.com",
+        "ageLabel": "Edad",
+        "agePlaceholder": "Tu edad",
+        "roleLabel": "Rol",
+        "roleDefault": "Selecciona un rol",
+        "roleDev": "Desarrollador",
+        "roleDesign": "Diseñador",
+        "roleMgr": "Gerente",
+        "termsLabel": "Acepto los términos",
+        "registerButton": "Registrarse",
+        "successMessage": "¡Registro completo! Bienvenido."
       }
     },
     "styling": {

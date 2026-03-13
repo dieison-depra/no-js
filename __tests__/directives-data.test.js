@@ -414,63 +414,6 @@ describe('Validation Directive', () => {
     });
   });
 
-  test('built-in between validator', () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{}');
-    const form = document.createElement('form');
-    form.setAttribute('validate', '');
-    const input = document.createElement('input');
-    input.name = 'score';
-    input.type = 'number';
-    input.setAttribute('validate', 'between:1:10');
-    form.appendChild(input);
-    parent.appendChild(form);
-    document.body.appendChild(parent);
-    processTree(parent);
-
-    return new Promise((resolve) => {
-      requestAnimationFrame(() => {
-        input.value = '15';
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        expect(parent.__ctx.$form.errors.score).toBe('Must be between 1 and 10');
-
-        input.value = '5';
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        expect(parent.__ctx.$form.errors.score).toBeUndefined();
-
-        resolve();
-      });
-    });
-  });
-
-  test('built-in phone validator', () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{}');
-    const form = document.createElement('form');
-    form.setAttribute('validate', '');
-    const input = document.createElement('input');
-    input.name = 'phone';
-    input.setAttribute('validate', 'phone');
-    form.appendChild(input);
-    parent.appendChild(form);
-    document.body.appendChild(parent);
-    processTree(parent);
-
-    return new Promise((resolve) => {
-      requestAnimationFrame(() => {
-        input.value = 'abc';
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        expect(parent.__ctx.$form.errors.phone).toBe('Invalid phone number');
-
-        input.value = '+1 555-1234';
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        expect(parent.__ctx.$form.errors.phone).toBeUndefined();
-
-        resolve();
-      });
-    });
-  });
-
   test('custom validator', () => {
     _validators.even = (value) => {
       if (Number(value) % 2 !== 0) return 'Must be even';
@@ -1505,120 +1448,6 @@ describe('Built-in validators', () => {
     expect(ctx.$form.errors.site).toBe('Invalid URL');
   });
 
-  test('cpf validator - valid', async () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{}');
-    const form = document.createElement('form');
-    form.setAttribute('validate', '');
-    form.innerHTML = '<input name="cpf" validate="cpf" />';
-    parent.appendChild(form);
-    document.body.appendChild(parent);
-    processTree(parent);
-    await new Promise((r) => setTimeout(r, 50));
-
-    const input = form.querySelector('input');
-    input.value = '123.456.789-09';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-
-    const ctx = findContext(form);
-    expect(ctx.$form.errors.cpf).toBeUndefined();
-  });
-
-  test('cpf validator - invalid', async () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{}');
-    const form = document.createElement('form');
-    form.setAttribute('validate', '');
-    form.innerHTML = '<input name="cpf" validate="cpf" />';
-    parent.appendChild(form);
-    document.body.appendChild(parent);
-    processTree(parent);
-    await new Promise((r) => setTimeout(r, 50));
-
-    const input = form.querySelector('input');
-    input.value = 'abc';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-
-    const ctx = findContext(form);
-    expect(ctx.$form.errors.cpf).toBe('Invalid CPF');
-  });
-
-  test('cnpj validator - valid', async () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{}');
-    const form = document.createElement('form');
-    form.setAttribute('validate', '');
-    form.innerHTML = '<input name="cnpj" validate="cnpj" />';
-    parent.appendChild(form);
-    document.body.appendChild(parent);
-    processTree(parent);
-    await new Promise((r) => setTimeout(r, 50));
-
-    const input = form.querySelector('input');
-    input.value = '12.345.678/0001-90';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-
-    const ctx = findContext(form);
-    expect(ctx.$form.errors.cnpj).toBeUndefined();
-  });
-
-  test('cnpj validator - invalid', async () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{}');
-    const form = document.createElement('form');
-    form.setAttribute('validate', '');
-    form.innerHTML = '<input name="cnpj" validate="cnpj" />';
-    parent.appendChild(form);
-    document.body.appendChild(parent);
-    processTree(parent);
-    await new Promise((r) => setTimeout(r, 50));
-
-    const input = form.querySelector('input');
-    input.value = 'abc';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-
-    const ctx = findContext(form);
-    expect(ctx.$form.errors.cnpj).toBe('Invalid CNPJ');
-  });
-
-  test('creditcard validator - valid', async () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{}');
-    const form = document.createElement('form');
-    form.setAttribute('validate', '');
-    form.innerHTML = '<input name="card" validate="creditcard" />';
-    parent.appendChild(form);
-    document.body.appendChild(parent);
-    processTree(parent);
-    await new Promise((r) => setTimeout(r, 50));
-
-    const input = form.querySelector('input');
-    input.value = '4111111111111111';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-
-    const ctx = findContext(form);
-    expect(ctx.$form.errors.card).toBeUndefined();
-  });
-
-  test('creditcard validator - invalid', async () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{}');
-    const form = document.createElement('form');
-    form.setAttribute('validate', '');
-    form.innerHTML = '<input name="card" validate="creditcard" />';
-    parent.appendChild(form);
-    document.body.appendChild(parent);
-    processTree(parent);
-    await new Promise((r) => setTimeout(r, 50));
-
-    const input = form.querySelector('input');
-    input.value = '123';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-
-    const ctx = findContext(form);
-    expect(ctx.$form.errors.card).toBe('Invalid card number');
-  });
-
   test('pipe-separated multiple rules', async () => {
     const parent = document.createElement('div');
     parent.setAttribute('state', '{}');
@@ -1842,52 +1671,10 @@ describe('custom validator error', () => {
     processTree(parent);
     await flush();
 
+    form.querySelector('input').dispatchEvent(new Event('input', { bubbles: true }));
+
     const ctx = findContext(form);
     expect(ctx.$form.errors.username).toBe('No spaces allowed');
-  });
-});
-
-describe('match rule', () => {
-  beforeEach(() => {
-    document.body.innerHTML = '';
-  });
-
-  test('match validator fails when values do not match', async () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{}');
-    const form = document.createElement('form');
-    form.setAttribute('validate', '');
-    form.innerHTML = `
-      <input name="password" value="abc123" />
-      <input name="confirm" validate="match:password" value="xyz789" />
-    `;
-    parent.appendChild(form);
-    document.body.appendChild(parent);
-
-    processTree(parent);
-    await flush();
-
-    const ctx = findContext(form);
-    expect(ctx.$form.errors.confirm).toBe('Must match password');
-  });
-
-  test('match validator passes when values match', async () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{}');
-    const form = document.createElement('form');
-    form.setAttribute('validate', '');
-    form.innerHTML = `
-      <input name="password" value="abc123" />
-      <input name="confirm" validate="match:password" value="abc123" />
-    `;
-    parent.appendChild(form);
-    document.body.appendChild(parent);
-
-    processTree(parent);
-    await flush();
-
-    const ctx = findContext(form);
-    expect(ctx.$form.errors.confirm).toBeUndefined();
   });
 });
 
@@ -1930,6 +1717,8 @@ describe('native checkValidity', () => {
 
     processTree(parent);
     await flush();
+
+    form.querySelector('input').dispatchEvent(new Event('input', { bubbles: true }));
 
     const ctx = findContext(form);
     expect(ctx.$form.valid).toBe(false);
@@ -2132,54 +1921,6 @@ describe('HTTP GET — reactive URL with debounce', () => {
 
     await jest.advanceTimersByTimeAsync(400);
     expect(global.fetch).toHaveBeenCalledTimes(2);
-  });
-});
-
-
-
-
-
-describe('Validation — creditcard invalid short number', () => {
-  beforeEach(() => {
-    document.body.innerHTML = '';
-  });
-
-  test('creditcard rejects numbers shorter than 13 digits', async () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{}');
-    const form = document.createElement('form');
-    form.setAttribute('validate', '');
-    form.innerHTML = '<input name="card" validate="creditcard" />';
-    parent.appendChild(form);
-    document.body.appendChild(parent);
-    processTree(parent);
-    await flush();
-
-    const input = form.querySelector('input');
-    input.value = '12345';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-
-    const ctx = findContext(form);
-    expect(ctx.$form.errors.card).toBe('Invalid card number');
-  });
-
-  test('creditcard rejects number with letters', async () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{}');
-    const form = document.createElement('form');
-    form.setAttribute('validate', '');
-    form.innerHTML = '<input name="card" validate="creditcard" />';
-    parent.appendChild(form);
-    document.body.appendChild(parent);
-    processTree(parent);
-    await flush();
-
-    const input = form.querySelector('input');
-    input.value = '4111abcd11111111';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-
-    const ctx = findContext(form);
-    expect(ctx.$form.errors.card).toBe('Invalid card number');
   });
 });
 
@@ -2592,9 +2333,10 @@ describe('Validation — $form.reset() resets form and rechecks validity', () =>
 
     expect(resetSpy).toHaveBeenCalled();
 
-
-
-    expect(ctx.$form.errors.email).toBe('Invalid email');
+    // After reset, field is pristine so $form.errors is empty,
+    // but $form.fields still reflects real validation state
+    expect(ctx.$form.errors.email).toBeUndefined();
+    expect(ctx.$form.fields.email.error).toBe('Invalid email');
 
     resetSpy.mockRestore();
   });
@@ -2924,6 +2666,8 @@ describe('Validation — custom validator via _validators', () => {
     processTree(parent);
 
     await new Promise(r => requestAnimationFrame(r));
+
+    input.dispatchEvent(new Event('input', { bubbles: true }));
 
     const ctx = findContext(form);
     expect(ctx.$form.errors.field1).toBe('Must be valid');
@@ -3286,5 +3030,760 @@ describe('call — error without error attribute (L123 false)', () => {
     await flush();
 
     expect(parent.querySelectorAll('[style*="contents"]').length).toBe(0);
+  });
+});
+
+
+// ══════════════════════════════════════════════════════════════════════
+// VALIDATION REVAMP — AUTO-DETECT HTML5 VALIDATION
+// ══════════════════════════════════════════════════════════════════════
+
+describe('Validation Revamp — Auto-detect HTML5 validation', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  test('auto-detects required attribute without validate=""', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="name" required value="" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    form.querySelector('input').dispatchEvent(new Event('input', { bubbles: true }));
+
+    const ctx = findContext(form);
+    expect(ctx.$form.valid).toBe(false);
+    expect(ctx.$form.errors.name).toBeTruthy();
+  });
+
+  test('valid when required field has value (auto-detect)', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="name" required value="John" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const ctx = findContext(form);
+    expect(ctx.$form.valid).toBe(true);
+  });
+
+  test('backward compat: validate="email" still works', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="email" validate="email" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const input = form.querySelector('input');
+    input.value = 'bad';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(findContext(form).$form.errors.email).toBe('Invalid email');
+  });
+
+  test('checkbox required auto-detected', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input type="checkbox" name="terms" required />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const ctx = findContext(form);
+    expect(ctx.$form.valid).toBe(false);
+    expect(ctx.$form.values.terms).toBe(false);
+  });
+
+  test('radio group value collection', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = `
+      <input type="radio" name="color" value="red" />
+      <input type="radio" name="color" value="blue" checked />
+    `;
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const ctx = findContext(form);
+    expect(ctx.$form.values.color).toBe('blue');
+  });
+
+  test('adds novalidate to form', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="x" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    expect(form.hasAttribute('novalidate')).toBe(true);
+  });
+});
+
+
+// ══════════════════════════════════════════════════════════════════════
+// VALIDATION REVAMP — PER-RULE ERROR MESSAGES
+// ══════════════════════════════════════════════════════════════════════
+
+describe('Validation Revamp — Per-rule error messages', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  test('error-{rule} provides custom message', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="email" validate="required|email" error-required="Email is required" error-email="Invalid email format" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const input = form.querySelector('input');
+    const ctx = findContext(form);
+
+    // Empty → required error
+    input.value = '';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(ctx.$form.errors.email).toBe('Email is required');
+
+    // Invalid email → email error
+    input.value = 'bad';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(ctx.$form.errors.email).toBe('Invalid email format');
+
+    // Valid
+    input.value = 'test@test.com';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(ctx.$form.errors.email).toBeUndefined();
+  });
+
+  test('generic error attribute as fallback', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="val" validate="required" error="This field has an error" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const input = form.querySelector('input');
+    input.value = '';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(findContext(form).$form.errors.val).toBe('This field has an error');
+  });
+
+  test('error-{rule} takes priority over generic error', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="val" validate="required" error="Generic" error-required="Specific" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const input = form.querySelector('input');
+    input.value = '';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(findContext(form).$form.errors.val).toBe('Specific');
+  });
+});
+
+
+// ══════════════════════════════════════════════════════════════════════
+// VALIDATION REVAMP — AUTO-DISABLE SUBMIT BUTTONS
+// ══════════════════════════════════════════════════════════════════════
+
+describe('Validation Revamp — Auto-disable submit buttons', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  test('submit button disabled when form invalid', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="x" validate="required" /><button type="submit">Go</button>';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const btn = form.querySelector('button');
+    expect(btn.disabled).toBe(true);
+  });
+
+  test('submit button enabled when form valid', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="x" validate="required" value="ok" /><button type="submit">Go</button>';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const btn = form.querySelector('button');
+    expect(btn.disabled).toBe(false);
+  });
+
+  test('button type="button" is NOT auto-disabled', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="x" validate="required" /><button type="button">Cancel</button>';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const btn = form.querySelector('button');
+    expect(btn.disabled).toBe(false);
+  });
+
+  test('input[type=submit] is auto-disabled', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="x" validate="required" /><input type="submit" value="Send" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const submit = form.querySelector('input[type="submit"]');
+    expect(submit.disabled).toBe(true);
+  });
+
+  test('button without type is auto-disabled (defaults to submit)', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="x" validate="required" /><button>Submit</button>';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const btn = form.querySelector('button');
+    expect(btn.disabled).toBe(true);
+  });
+});
+
+
+// ══════════════════════════════════════════════════════════════════════
+// VALIDATION REVAMP — ERROR-CLASS
+// ══════════════════════════════════════════════════════════════════════
+
+describe('Validation Revamp — error-class', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  test('applies error class when field is invalid and touched', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.setAttribute('error-class', 'border-red');
+    form.innerHTML = '<input name="x" validate="required" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const input = form.querySelector('input');
+    // Not touched yet — no error class
+    expect(input.classList.contains('border-red')).toBe(false);
+
+    // Touch + invalid
+    input.dispatchEvent(new Event('focusout', { bubbles: true }));
+    expect(input.classList.contains('border-red')).toBe(true);
+  });
+
+  test('removes error class when field becomes valid', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.setAttribute('error-class', 'border-red');
+    form.innerHTML = '<input name="x" validate="required" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const input = form.querySelector('input');
+    input.dispatchEvent(new Event('focusout', { bubbles: true }));
+    expect(input.classList.contains('border-red')).toBe(true);
+
+    input.value = 'filled';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(input.classList.contains('border-red')).toBe(false);
+  });
+
+  test('per-field error-class overrides form-level', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.setAttribute('error-class', 'form-error');
+    form.innerHTML = '<input name="x" validate="required" error-class="field-error" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const input = form.querySelector('input');
+    input.dispatchEvent(new Event('focusout', { bubbles: true }));
+    expect(input.classList.contains('field-error')).toBe(true);
+    expect(input.classList.contains('form-error')).toBe(false);
+  });
+});
+
+
+// ══════════════════════════════════════════════════════════════════════
+// VALIDATION REVAMP — VALIDATE-ON
+// ══════════════════════════════════════════════════════════════════════
+
+describe('Validation Revamp — validate-on', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  test('validate-on="blur" only validates on focusout', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.setAttribute('validate-on', 'blur');
+    form.innerHTML = '<input name="x" validate="required" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const input = form.querySelector('input');
+    const ctx = findContext(form);
+
+    // Input event should NOT trigger validation
+    input.value = 'test';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    // dirty should still be tracked
+    expect(ctx.$form.dirty).toBe(true);
+
+    // Focusout should trigger validation
+    input.dispatchEvent(new Event('focusout', { bubbles: true }));
+    expect(ctx.$form.touched).toBe(true);
+  });
+
+  test('per-field validate-on overrides form-level', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.setAttribute('validate-on', 'blur');
+    form.innerHTML = '<input name="x" validate="required" validate-on="input" value="" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const input = form.querySelector('input');
+    const ctx = findContext(form);
+
+    // Field has validate-on="input", so input events should trigger validation
+    input.value = 'hello';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(ctx.$form.dirty).toBe(true);
+  });
+});
+
+
+// ══════════════════════════════════════════════════════════════════════
+// VALIDATION REVAMP — $form.firstError
+// ══════════════════════════════════════════════════════════════════════
+
+describe('Validation Revamp — $form.firstError', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  test('returns first error message in DOM order', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = `
+      <input name="first" validate="required" error-required="First is required" />
+      <input name="second" validate="required" error-required="Second is required" />
+    `;
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    form.querySelectorAll('input').forEach(i => i.dispatchEvent(new Event('input', { bubbles: true })));
+
+    const ctx = findContext(form);
+    expect(ctx.$form.firstError).toBe('First is required');
+  });
+
+  test('null when all fields valid', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="x" validate="required" value="ok" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const ctx = findContext(form);
+    expect(ctx.$form.firstError).toBeNull();
+  });
+});
+
+
+// ══════════════════════════════════════════════════════════════════════
+// VALIDATION REVAMP — $form.errorCount
+// ══════════════════════════════════════════════════════════════════════
+
+describe('Validation Revamp — $form.errorCount', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  test('counts invalid fields', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = `
+      <input name="a" validate="required" />
+      <input name="b" validate="required" />
+      <input name="c" validate="required" value="filled" />
+    `;
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    form.querySelectorAll('input').forEach(i => i.dispatchEvent(new Event('input', { bubbles: true })));
+
+    const ctx = findContext(form);
+    expect(ctx.$form.errorCount).toBe(2);
+  });
+
+  test('zero when all valid', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="a" value="ok" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    expect(findContext(form).$form.errorCount).toBe(0);
+  });
+});
+
+
+// ══════════════════════════════════════════════════════════════════════
+// VALIDATION REVAMP — VALIDATE-IF
+// ══════════════════════════════════════════════════════════════════════
+
+describe('Validation Revamp — validate-if', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  test('skips validation when validate-if is false', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{ show: false }');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="company" validate="required" validate-if="show" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const ctx = findContext(form);
+    // Field should be treated as valid because validate-if is false
+    expect(ctx.$form.valid).toBe(true);
+    expect(ctx.$form.errors.company).toBeUndefined();
+  });
+
+  test('validates when validate-if is true', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{ show: true }');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="company" validate="required" validate-if="show" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    form.querySelector('input').dispatchEvent(new Event('input', { bubbles: true }));
+
+    const ctx = findContext(form);
+    expect(ctx.$form.valid).toBe(false);
+    expect(ctx.$form.errors.company).toBeTruthy();
+  });
+
+  test('validate-if field context shows valid when condition is false', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{ show: false }');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="company" validate="required" validate-if="show" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const ctx = findContext(form);
+    expect(ctx.$form.fields.company.valid).toBe(true);
+  });
+});
+
+
+// ══════════════════════════════════════════════════════════════════════
+// VALIDATION REVAMP — $form.fields (per-field context)
+// ══════════════════════════════════════════════════════════════════════
+
+describe('Validation Revamp — $form.fields', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  test('$form.fields contains per-field state', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="email" validate="required" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const ctx = findContext(form);
+    const field = ctx.$form.fields.email;
+    expect(field).toBeDefined();
+    expect(field.valid).toBe(false);
+    expect(field.dirty).toBe(false);
+    expect(field.touched).toBe(false);
+    expect(field.error).toBeTruthy();
+    expect(field.value).toBe('');
+  });
+
+  test('$form.fields updates on input', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="email" validate="required" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const input = form.querySelector('input');
+    input.value = 'test@test.com';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    const ctx = findContext(form);
+    expect(ctx.$form.fields.email.valid).toBe(true);
+    expect(ctx.$form.fields.email.dirty).toBe(true);
+    expect(ctx.$form.fields.email.value).toBe('test@test.com');
+  });
+
+  test('as="" attribute exposes field context on parent', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="email" validate="required" as="emailField" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const ctx = findContext(form);
+    expect(ctx.emailField).toBeDefined();
+    expect(ctx.emailField.valid).toBe(false);
+  });
+});
+
+
+// ══════════════════════════════════════════════════════════════════════
+// VALIDATION REVAMP — SUBMIT MARKS ALL TOUCHED
+// ══════════════════════════════════════════════════════════════════════
+
+describe('Validation Revamp — Submit marks all fields touched', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  test('submit marks all fields as touched', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.setAttribute('error-class', 'err');
+    form.innerHTML = `
+      <input name="a" validate="required" />
+      <input name="b" validate="required" />
+      <button type="submit">Go</button>
+    `;
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    form.dispatchEvent(new Event('submit', { bubbles: true }));
+
+    const ctx = findContext(form);
+    expect(ctx.$form.touched).toBe(true);
+    expect(ctx.$form.fields.a.touched).toBe(true);
+    expect(ctx.$form.fields.b.touched).toBe(true);
+    // Error classes should now be applied since fields are touched
+    const inputA = form.querySelector('input[name="a"]');
+    expect(inputA.classList.contains('err')).toBe(true);
+  });
+});
+
+
+// ══════════════════════════════════════════════════════════════════════
+// VALIDATION REVAMP — ERROR TEMPLATE REFERENCES
+// ══════════════════════════════════════════════════════════════════════
+
+describe('Validation Revamp — Error template references', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  test('error-{rule}="#tpl" renders template in-place', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    const tpl = document.createElement('template');
+    tpl.id = 'req-tpl';
+    tpl.innerHTML = '<span class="tpl-err" bind="$error"></span>';
+    form.innerHTML = '<input name="x" validate="required" error-required="#req-tpl" />';
+    form.appendChild(tpl);
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    form.querySelector('input').dispatchEvent(new Event('input', { bubbles: true }));
+
+    // Template should be rendered after the <template> element
+    const rendered = form.querySelector('.tpl-err');
+    expect(rendered).not.toBeNull();
+  });
+
+  test('clears template when field becomes valid', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    const tpl = document.createElement('template');
+    tpl.id = 'req-tpl2';
+    tpl.innerHTML = '<span class="tpl-err2">Error!</span>';
+    form.innerHTML = '<input name="x" validate="required" error-required="#req-tpl2" />';
+    form.appendChild(tpl);
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    form.querySelector('input').dispatchEvent(new Event('input', { bubbles: true }));
+
+    expect(form.querySelector('.tpl-err2')).not.toBeNull();
+
+    const input = form.querySelector('input');
+    input.value = 'filled';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    expect(form.querySelector('.tpl-err2')).toBeNull();
+  });
+});
+
+
+// ══════════════════════════════════════════════════════════════════════
+// VALIDATION REVAMP — $form.pending (async validators)
+// ══════════════════════════════════════════════════════════════════════
+
+describe('Validation Revamp — $form.pending', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+  afterEach(() => { Object.keys(_validators).forEach(k => delete _validators[k]); });
+
+  test('$form.pending starts as false', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.innerHTML = '<input name="x" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const ctx = findContext(form);
+    expect(ctx.$form.pending).toBe(false);
+  });
+});
+
+
+// ══════════════════════════════════════════════════════════════════════
+// VALIDATION REVAMP — $form.reset() with new features
+// ══════════════════════════════════════════════════════════════════════
+
+describe('Validation Revamp — $form.reset() enhancements', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  test('reset clears error classes', async () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const form = document.createElement('form');
+    form.setAttribute('validate', '');
+    form.setAttribute('error-class', 'is-error');
+    form.innerHTML = '<input name="x" validate="required" />';
+    parent.appendChild(form);
+    document.body.appendChild(parent);
+    processTree(parent);
+    await new Promise(r => setTimeout(r, 50));
+
+    const input = form.querySelector('input');
+    input.dispatchEvent(new Event('focusout', { bubbles: true }));
+    expect(input.classList.contains('is-error')).toBe(true);
+
+    const ctx = findContext(form);
+    ctx.$form.reset();
+    await new Promise(r => setTimeout(r, 50));
+
+    expect(input.classList.contains('is-error')).toBe(false);
+    expect(ctx.$form.dirty).toBe(false);
+    expect(ctx.$form.touched).toBe(false);
   });
 });

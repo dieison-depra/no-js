@@ -679,6 +679,18 @@
       "rules": {
         "title": "Regole di Validazione"
       },
+      "perRuleErrors": {
+        "title": "Messaggi di Errore per Regola",
+        "text": "Usa gli attributi error-{regola} per impostare un messaggio personalizzato per una regola specifica, o error come fallback generico."
+      },
+      "errorTemplates": {
+        "title": "Template di Errore",
+        "text": "Punta un attributo error a un <template> usando il prefisso # per renderizzare UI di errore avanzata. All'interno del template, $error contiene il messaggio e $rule il nome della regola fallita."
+      },
+      "errorClass": {
+        "title": "Classe CSS di Errore",
+        "text": "Usa error-class sul form o su campi individuali per alternare una classe CSS quando un campo è invalido e toccato."
+      },
       "formContext": {
         "title": "$form — Contesto del Form",
         "text": "All'interno di qualsiasi <form> con l'attributo validate, $form fornisce:",
@@ -689,21 +701,53 @@
         "dirty": "true se un campo è stato modificato",
         "touched": "true se un campo ha ricevuto e perso il focus",
         "submitting": "true mentre la richiesta è in corso",
+        "pending": "true mentre i validatori asincroni sono in esecuzione",
         "errors": "Mappa dei nomi dei campi → messaggi di errore",
         "values": "Valori correnti del form",
-        "reset": "Ripristina il form ai valori iniziali"
+        "firstError": "Messaggio di errore del primo campo invalido (ordine del DOM)",
+        "errorCount": "Numero di campi attualmente in errore di validazione",
+        "fields": "Oggetto di stato per campo (valid, error, dirty, touched)",
+        "reset": "Ripristina il form ai valori iniziali, cancella errori e classi"
+      },
+      "formFields": {
+        "title": "$form.fields — Stato per Campo",
+        "text": "$form.fields espone lo stato individuale di ogni campo indicizzato per nome.",
+        "asTitle": "Alias di Campo con as",
+        "asText": "Usa l'attributo as per esporre lo stato di un campo sotto un nome personalizzato nel contesto."
+      },
+      "validateOn": {
+        "title": "Trigger di Validazione (validate-on)",
+        "text": "Per impostazione predefinita, la validazione viene eseguita su input e focusout. Usa validate-on per cambiare quando appare il feedback visivo.",
+        "note": "Internamente, i dati di $form sono sempre aggiornati indipendentemente da validate-on. Il trigger controlla solo quando viene mostrato il feedback visivo."
+      },
+      "validateIf": {
+        "title": "Validazione Condizionale (validate-if)",
+        "text": "Salta la validazione di un campo in base a una condizione. Quando validate-if valuta a false, il campo viene trattato come valido."
+      },
+      "autoDisable": {
+        "title": "Disabilita Automatica dei Pulsanti di Invio",
+        "text": "I pulsanti di invio vengono automaticamente disabilitati quando il form è invalido. I pulsanti con type=\"button\" non vengono influenzati."
       },
       "customValidators": {
         "title": "Validatori Personalizzati"
       },
       "liveDemo": {
-        "title": "Demo Live — Form di Contatto",
+        "title": "Demo Live — Form di Registrazione",
         "label": "Risultato",
-        "namePlaceholder": "Il tuo nome",
-        "emailPlaceholder": "La tua email",
-        "sendButton": "Invia",
-        "successMessage": "Grazie, {name}!",
-        "thanks": "Grazie,"
+        "usernameLabel": "Nome utente",
+        "usernamePlaceholder": "Scegli un nome utente",
+        "emailLabel": "Email",
+        "emailPlaceholder": "tu@esempio.com",
+        "ageLabel": "Età",
+        "agePlaceholder": "La tua età",
+        "roleLabel": "Ruolo",
+        "roleDefault": "Seleziona un ruolo",
+        "roleDev": "Sviluppatore",
+        "roleDesign": "Designer",
+        "roleMgr": "Manager",
+        "termsLabel": "Accetto i termini",
+        "registerButton": "Registrati",
+        "successMessage": "Registrazione completata! Benvenuto."
       }
     },
     "styling": {

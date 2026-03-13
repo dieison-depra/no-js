@@ -679,6 +679,18 @@
       "rules": {
         "title": "Validation Rules"
       },
+      "perRuleErrors": {
+        "title": "Per-Rule Error Messages",
+        "text": "Use error-{rule} attributes to set a custom message for a specific rule, or error for a generic fallback."
+      },
+      "errorTemplates": {
+        "title": "Error Templates",
+        "text": "Point an error attribute to a <template> using a # prefix to render rich error UI. Inside the template, $error contains the message and $rule the failing rule name."
+      },
+      "errorClass": {
+        "title": "Error CSS Class",
+        "text": "Use error-class on the form or on individual fields to toggle a CSS class when a field is invalid and touched."
+      },
       "formContext": {
         "title": "$form — Form Context",
         "text": "Inside any <form> with the validate attribute, $form provides:",
@@ -689,21 +701,53 @@
         "dirty": "true if any field has been modified",
         "touched": "true if any field has been focused and blurred",
         "submitting": "true while the request is in flight",
+        "pending": "true while async validators are running",
         "errors": "Map of field names → error messages",
         "values": "Current form values",
-        "reset": "Reset form to initial values"
+        "firstError": "Error message of the first invalid field (DOM order)",
+        "errorCount": "Number of fields currently failing validation",
+        "fields": "Per-field state object (valid, error, dirty, touched)",
+        "reset": "Reset form to initial values, clear errors and classes"
+      },
+      "formFields": {
+        "title": "$form.fields — Per-Field State",
+        "text": "$form.fields exposes individual field state keyed by field name.",
+        "asTitle": "Field Aliases with as",
+        "asText": "Use the as attribute to expose a field's state under a custom name in the context."
+      },
+      "validateOn": {
+        "title": "Validation Triggers (validate-on)",
+        "text": "By default, validation runs on input and focusout. Use validate-on to change when visual feedback appears.",
+        "note": "Internally, $form data is always kept up-to-date regardless of validate-on. The trigger only controls when visual feedback is shown."
+      },
+      "validateIf": {
+        "title": "Conditional Validation (validate-if)",
+        "text": "Skip validation for a field based on a condition. When validate-if evaluates to false, the field is treated as valid."
+      },
+      "autoDisable": {
+        "title": "Auto-Disable Submit Buttons",
+        "text": "Submit buttons are automatically disabled when the form is invalid. Buttons with type=\"button\" are not affected."
       },
       "customValidators": {
         "title": "Custom Validators"
       },
       "liveDemo": {
-        "title": "Live Demo — Contact Form",
+        "title": "Live Demo — Registration Form",
         "label": "Result",
-        "namePlaceholder": "Your name",
-        "emailPlaceholder": "Your email",
-        "sendButton": "Send",
-        "successMessage": "Thanks, {name}!",
-        "thanks": "Thanks,"
+        "usernameLabel": "Username",
+        "usernamePlaceholder": "Choose a username",
+        "emailLabel": "Email",
+        "emailPlaceholder": "you@example.com",
+        "ageLabel": "Age",
+        "agePlaceholder": "Your age",
+        "roleLabel": "Role",
+        "roleDefault": "Select a role",
+        "roleDev": "Developer",
+        "roleDesign": "Designer",
+        "roleMgr": "Manager",
+        "termsLabel": "I agree to the terms",
+        "registerButton": "Register",
+        "successMessage": "Registration complete! Welcome aboard."
       }
     },
     "styling": {

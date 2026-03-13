@@ -679,6 +679,18 @@
       "rules": {
         "title": "Regras de Validação"
       },
+      "perRuleErrors": {
+        "title": "Mensagens de Erro por Regra",
+        "text": "Use atributos error-{regra} para definir uma mensagem personalizada para uma regra específica, ou error como fallback genérico."
+      },
+      "errorTemplates": {
+        "title": "Templates de Erro",
+        "text": "Aponte um atributo error para um <template> usando o prefixo # para renderizar UI de erro rica. Dentro do template, $error contém a mensagem e $rule o nome da regra que falhou."
+      },
+      "errorClass": {
+        "title": "Classe CSS de Erro",
+        "text": "Use error-class no formulário ou em campos individuais para alternar uma classe CSS quando um campo é inválido e tocado."
+      },
       "formContext": {
         "title": "$form — Contexto do Formulário",
         "text": "Dentro de qualquer <form> com o atributo validate, $form fornece:",
@@ -689,21 +701,53 @@
         "dirty": "true se algum campo foi modificado",
         "touched": "true se algum campo recebeu foco e perdeu foco",
         "submitting": "true enquanto a requisição está em andamento",
+        "pending": "true enquanto validadores assíncronos estão em execução",
         "errors": "Mapa de nomes de campo → mensagens de erro",
         "values": "Valores atuais do formulário",
-        "reset": "Resetar formulário para valores iniciais"
+        "firstError": "Mensagem de erro do primeiro campo inválido (ordem do DOM)",
+        "errorCount": "Número de campos que estão falhando na validação",
+        "fields": "Objeto de estado por campo (valid, error, dirty, touched)",
+        "reset": "Resetar formulário para valores iniciais, limpar erros e classes"
+      },
+      "formFields": {
+        "title": "$form.fields — Estado por Campo",
+        "text": "$form.fields expõe o estado individual de cada campo indexado pelo nome.",
+        "asTitle": "Aliases de Campo com as",
+        "asText": "Use o atributo as para expor o estado de um campo sob um nome personalizado no contexto."
+      },
+      "validateOn": {
+        "title": "Gatilhos de Validação (validate-on)",
+        "text": "Por padrão, a validação executa em input e focusout. Use validate-on para controlar quando o feedback visual aparece.",
+        "note": "Internamente, os dados do $form são sempre mantidos atualizados independente do validate-on. O gatilho controla apenas quando o feedback visual é exibido."
+      },
+      "validateIf": {
+        "title": "Validação Condicional (validate-if)",
+        "text": "Pule a validação de um campo com base em uma condição. Quando validate-if avalia para false, o campo é tratado como válido."
+      },
+      "autoDisable": {
+        "title": "Desabilitar Botões de Envio Automaticamente",
+        "text": "Botões de envio são automaticamente desabilitados quando o formulário é inválido. Botões com type=\"button\" não são afetados."
       },
       "customValidators": {
         "title": "Validadores Personalizados"
       },
       "liveDemo": {
-        "title": "Demo ao Vivo — Formulário de Contato",
+        "title": "Demo ao Vivo — Formulário de Registro",
         "label": "Resultado",
-        "namePlaceholder": "Seu nome",
-        "emailPlaceholder": "Seu email",
-        "sendButton": "Enviar",
-        "successMessage": "Obrigado, {name}!",
-        "thanks": "Obrigado,"
+        "usernameLabel": "Usuário",
+        "usernamePlaceholder": "Escolha um nome de usuário",
+        "emailLabel": "Email",
+        "emailPlaceholder": "voce@exemplo.com",
+        "ageLabel": "Idade",
+        "agePlaceholder": "Sua idade",
+        "roleLabel": "Função",
+        "roleDefault": "Selecione uma função",
+        "roleDev": "Desenvolvedor",
+        "roleDesign": "Designer",
+        "roleMgr": "Gerente",
+        "termsLabel": "Concordo com os termos",
+        "registerButton": "Registrar",
+        "successMessage": "Registro concluído! Bem-vindo."
       }
     },
     "styling": {

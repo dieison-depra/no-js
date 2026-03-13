@@ -679,6 +679,18 @@
       "rules": {
         "title": "Règles de validation"
       },
+      "perRuleErrors": {
+        "title": "Messages d'erreur par règle",
+        "text": "Utilisez les attributs error-{règle} pour définir un message personnalisé pour une règle spécifique, ou error comme message générique."
+      },
+      "errorTemplates": {
+        "title": "Modèles d'erreur",
+        "text": "Pointez un attribut error vers un <template> en utilisant le préfixe # pour afficher une UI d'erreur enrichie. Dans le modèle, $error contient le message et $rule le nom de la règle échouée."
+      },
+      "errorClass": {
+        "title": "Classe CSS d'erreur",
+        "text": "Utilisez error-class sur le formulaire ou sur des champs individuels pour basculer une classe CSS quand un champ est invalide et a été touché."
+      },
       "formContext": {
         "title": "$form — Contexte de formulaire",
         "text": "À l'intérieur de tout <form> avec l'attribut validate, $form fournit :",
@@ -689,21 +701,53 @@
         "dirty": "true si un champ a été modifié",
         "touched": "true si un champ a reçu puis perdu le focus",
         "submitting": "true pendant que la requête est en cours",
+        "pending": "true pendant que les validateurs asynchrones s'exécutent",
         "errors": "Map des noms de champs → messages d'erreur",
         "values": "Valeurs courantes du formulaire",
-        "reset": "Réinitialiser le formulaire aux valeurs initiales"
+        "firstError": "Message d'erreur du premier champ invalide (ordre du DOM)",
+        "errorCount": "Nombre de champs actuellement en échec de validation",
+        "fields": "Objet d'état par champ (valid, error, dirty, touched)",
+        "reset": "Réinitialiser le formulaire aux valeurs initiales, effacer erreurs et classes"
+      },
+      "formFields": {
+        "title": "$form.fields — État par champ",
+        "text": "$form.fields expose l'état individuel de chaque champ indexé par nom.",
+        "asTitle": "Alias de champ avec as",
+        "asText": "Utilisez l'attribut as pour exposer l'état d'un champ sous un nom personnalisé dans le contexte."
+      },
+      "validateOn": {
+        "title": "Déclencheurs de validation (validate-on)",
+        "text": "Par défaut, la validation s'exécute sur input et focusout. Utilisez validate-on pour changer quand le feedback visuel apparaît.",
+        "note": "En interne, les données de $form sont toujours maintenues à jour indépendamment de validate-on. Le déclencheur contrôle uniquement quand le feedback visuel est affiché."
+      },
+      "validateIf": {
+        "title": "Validation conditionnelle (validate-if)",
+        "text": "Ignorez la validation d'un champ en fonction d'une condition. Quand validate-if évalue à false, le champ est traité comme valide."
+      },
+      "autoDisable": {
+        "title": "Désactiver automatiquement les boutons de soumission",
+        "text": "Les boutons de soumission sont automatiquement désactivés quand le formulaire est invalide. Les boutons avec type=\"button\" ne sont pas affectés."
       },
       "customValidators": {
         "title": "Validateurs personnalisés"
       },
       "liveDemo": {
-        "title": "Démo en direct — Formulaire de contact",
+        "title": "Démo en direct — Formulaire d'inscription",
         "label": "Résultat",
-        "namePlaceholder": "Votre nom",
-        "emailPlaceholder": "Votre e-mail",
-        "sendButton": "Envoyer",
-        "successMessage": "Merci, {name} !",
-        "thanks": "Merci,"
+        "usernameLabel": "Nom d'utilisateur",
+        "usernamePlaceholder": "Choisissez un nom d'utilisateur",
+        "emailLabel": "E-mail",
+        "emailPlaceholder": "vous@exemple.com",
+        "ageLabel": "Âge",
+        "agePlaceholder": "Votre âge",
+        "roleLabel": "Rôle",
+        "roleDefault": "Sélectionnez un rôle",
+        "roleDev": "Développeur",
+        "roleDesign": "Designer",
+        "roleMgr": "Manager",
+        "termsLabel": "J'accepte les conditions",
+        "registerButton": "S'inscrire",
+        "successMessage": "Inscription terminée ! Bienvenue."
       }
     },
     "styling": {
