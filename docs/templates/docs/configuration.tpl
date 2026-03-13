@@ -71,6 +71,20 @@
 <span class="hl-tag">&lt;/script&gt;</span></pre></div>
   </div>
 
+  <!-- Pre-initializing Stores -->
+  <div class="doc-section">
+    <h2 class="doc-title" t="docs.configuration.configStores.title"></h2>
+    <p class="doc-text" t="docs.configuration.configStores.text"></p>
+    <div class="code-block"><pre><span class="hl-fn">NoJS</span>.<span class="hl-fn">config</span>({
+  <span class="hl-attr">stores</span>: {
+    <span class="hl-attr">auth</span>: { <span class="hl-attr">user</span>: <span class="hl-kw">null</span>, <span class="hl-attr">token</span>: <span class="hl-str">''</span> },
+    <span class="hl-attr">ui</span>:   { <span class="hl-attr">theme</span>: <span class="hl-str">'dark'</span>, <span class="hl-attr">sidebar</span>: <span class="hl-kw">true</span> },
+    <span class="hl-attr">cart</span>: { <span class="hl-attr">items</span>: [], <span class="hl-attr">total</span>: <span class="hl-num">0</span> }
+  }
+});</pre></div>
+    <div class="callout"><p t="docs.configuration.configStores.callout"></p></div>
+  </div>
+
   <!-- Config Option Details -->
   <div class="doc-section">
     <h2 class="doc-title" t="docs.configuration.configOptions.title"></h2>

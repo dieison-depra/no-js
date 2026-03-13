@@ -49,6 +49,25 @@
 <span class="hl-tag">&lt;/nav&gt;</span></pre></div>
   </div>
 
+  <!-- configStores -->
+  <div class="doc-section">
+    <h2 class="doc-title" t="docs.stateManagement.configStores.title"></h2>
+    <p class="doc-text" t="docs.stateManagement.configStores.text"></p>
+    <div class="code-block"><pre><span class="hl-tag">&lt;script&gt;</span>
+  <span class="hl-fn">NoJS</span>.<span class="hl-fn">config</span>({
+    <span class="hl-attr">stores</span>: {
+      <span class="hl-attr">auth</span>: { <span class="hl-attr">user</span>: <span class="hl-kw">null</span>, <span class="hl-attr">token</span>: <span class="hl-str">''</span> },
+      <span class="hl-attr">cart</span>: { <span class="hl-attr">items</span>: [], <span class="hl-attr">total</span>: <span class="hl-num">0</span> }
+    }
+  });
+<span class="hl-tag">&lt;/script&gt;</span>
+
+<span class="hl-cmt">&lt;!-- Access from anywhere --&gt;</span>
+<span class="hl-tag">&lt;span</span> <span class="hl-attr">bind</span>=<span class="hl-str">"$store.auth.user.name"</span><span class="hl-tag">&gt;&lt;/span&gt;</span>
+<span class="hl-tag">&lt;span</span> <span class="hl-attr">bind</span>=<span class="hl-str">"$store.cart.items.length"</span><span class="hl-tag">&gt;&lt;/span&gt;</span></pre></div>
+    <div class="callout"><p t="docs.stateManagement.configStores.callout"></p></div>
+  </div>
+
   <!-- into -->
   <div class="doc-section">
     <h2 class="doc-title" t="docs.stateManagement.into.title"></h2>

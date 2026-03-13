@@ -648,6 +648,68 @@ describe('index.js — config()', () => {
   });
 });
 
+describe('index.js — config() stores', () => {
+  test('creates a single store via config', async () => {
+    const { default: No } = await import('../src/index.js');
+
+    No.config({ stores: { cart: { items: [], total: 0 } } });
+    expect(_stores.cart).toBeDefined();
+    expect(_stores.cart.items).toEqual([]);
+    expect(_stores.cart.total).toBe(0);
+
+    delete _stores.cart;
+  });
+
+  test('creates multiple stores via config', async () => {
+    const { default: No } = await import('../src/index.js');
+
+    No.config({
+      stores: {
+        auth: { user: null, token: 'abc' },
+        theme: { mode: 'dark' },
+        cart: { items: [] },
+      },
+    });
+    expect(_stores.auth).toBeDefined();
+    expect(_stores.auth.token).toBe('abc');
+    expect(_stores.theme.mode).toBe('dark');
+    expect(_stores.cart.items).toEqual([]);
+
+    delete _stores.auth;
+    delete _stores.theme;
+    delete _stores.cart;
+  });
+
+  test('does not overwrite existing store', async () => {
+    const { default: No } = await import('../src/index.js');
+
+    _stores.existing = createContext({ value: 'original' });
+    No.config({ stores: { existing: { value: 'overwritten' } } });
+    expect(_stores.existing.value).toBe('original');
+
+    delete _stores.existing;
+  });
+
+  test('config stores are accessible via evaluate $store', async () => {
+    const { default: No } = await import('../src/index.js');
+
+    No.config({ stores: { app: { name: 'NoJS' } } });
+    const ctx = createContext({});
+    expect(evaluate('$store.app.name', ctx)).toBe('NoJS');
+
+    delete _stores.app;
+  });
+
+  test('does not leak stores into _config', async () => {
+    const { default: No } = await import('../src/index.js');
+
+    No.config({ stores: { test: { a: 1 } } });
+    expect(_config.stores).toBeUndefined();
+
+    delete _stores.test;
+  });
+});
+
 describe('index.js — init() SSR guard', () => {
   test('init() returns immediately when document is undefined', async () => {
     const { default: No } = await import('../src/index.js');

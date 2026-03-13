@@ -274,6 +274,11 @@
         "title": "store — Store Global",
         "text": "Un store reactivo global accesible desde cualquier lugar. Ideal para estado de autenticación, tema, datos compartidos."
       },
+      "configStores": {
+        "title": "Pre-inicialización de Stores vía config()",
+        "text": "Puedes pre-crear stores con datos iniciales dentro de NoJS.config(). Cada clave en el objeto stores se convierte en un store global nombrado, accesible inmediatamente vía $store.nombre.",
+        "callout": "Si un store ya existe (ej. creado mediante un atributo store), config() no lo sobrescribirá — el store existente se preserva."
+      },
       "into": {
         "title": "into — Escribir Resultados de Fetch en un Store",
         "text": "El atributo into en cualquier directiva HTTP escribe la respuesta directamente en un store global nombrado.",
@@ -1062,6 +1067,11 @@
       },
       "globalSettings": {
         "title": "Configuración Global"
+      },
+      "configStores": {
+        "title": "Pre-inicialización de Stores",
+        "text": "Usa la clave stores en NoJS.config() para pre-crear stores globales nombrados con datos iniciales. Cada entrada se convierte en un store reactivo accesible vía $store.nombre en cualquier parte de tu HTML.",
+        "callout": "Los stores creados vía config() no sobrescribirán stores que ya existen — la primera definición prevalece."
       },
       "configOptions": {
         "title": "Detalle de Opciones de Configuración",

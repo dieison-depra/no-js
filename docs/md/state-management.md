@@ -42,6 +42,28 @@ A global reactive store accessible from anywhere. Ideal for auth state, theme, s
 </footer>
 ```
 
+### Pre-initializing Stores via `config()`
+
+You can also create stores programmatically with `NoJS.config()`. This is useful for hydrating state from `localStorage`, setting auth tokens, or defining multiple stores before the DOM is processed:
+
+```html
+<script>
+  NoJS.config({
+    stores: {
+      auth:  { user: null, token: localStorage.getItem('token') },
+      cart:  { items: [], total: 0 },
+      theme: { mode: 'dark', accent: 'blue' }
+    }
+  });
+</script>
+
+<!-- These work immediately — no <div store> needed -->
+<span bind="$store.auth.token"></span>
+<span bind="$store.cart.items.length + ' items'"></span>
+```
+
+> Stores created via `config()` won't be overwritten by a later `<div store>` with the same name.
+
 ---
 
 ## `into` — Write Fetch Results to a Store

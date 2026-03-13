@@ -270,6 +270,41 @@ describe('NoJS.store', () => {
     expect(NoJS.store.cart).toBeDefined();
     expect(NoJS.store.cart.items).toEqual([]);
   });
+
+  test('config stores are accessible via $store in bindings', async () => {
+    NoJS.config({
+      stores: {
+        app: { title: 'My App', version: '1.0' },
+      },
+    });
+
+    document.body.innerHTML = `
+      <div state="{}">
+        <span bind="$store.app.title" id="title"></span>
+        <span bind="$store.app.version" id="version"></span>
+      </div>
+    `;
+    await NoJS.init();
+
+    expect(document.getElementById('title').textContent).toBe('My App');
+    expect(document.getElementById('version').textContent).toBe('1.0');
+  });
+
+  test('HTML store directive does not overwrite config store', async () => {
+    NoJS.config({
+      stores: { settings: { color: 'blue' } },
+    });
+
+    document.body.innerHTML = `
+      <div store="settings" value="{ color: 'red' }"></div>
+      <div state="{}">
+        <span bind="$store.settings.color" id="color"></span>
+      </div>
+    `;
+    await NoJS.init();
+
+    expect(document.getElementById('color').textContent).toBe('blue');
+  });
 });
 
 describe('Integration: state + bind', () => {

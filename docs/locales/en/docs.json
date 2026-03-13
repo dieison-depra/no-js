@@ -274,6 +274,11 @@
         "title": "store — Global Store",
         "text": "A global reactive store accessible from anywhere. Ideal for auth state, theme, shared data."
       },
+      "configStores": {
+        "title": "Pre-initializing Stores via config()",
+        "text": "You can pre-create stores with initial data inside NoJS.config(). Each key in the stores object becomes a named global store, accessible immediately via $store.name.",
+        "callout": "If a store already exists (e.g. created via a store attribute), config() will not overwrite it — the existing store is preserved."
+      },
       "into": {
         "title": "into — Write Fetch Results to a Store",
         "text": "The into attribute on any HTTP directive writes the response directly into a named global store.",
@@ -1062,6 +1067,11 @@
       },
       "globalSettings": {
         "title": "Global Settings"
+      },
+      "configStores": {
+        "title": "Pre-initializing Stores",
+        "text": "Use the stores key in NoJS.config() to pre-create named global stores with initial data. Each entry becomes a reactive store accessible via $store.name anywhere in your markup.",
+        "callout": "Stores created via config() will not overwrite stores that already exist — the first definition wins."
       },
       "configOptions": {
         "title": "Config Option Details",

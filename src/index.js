@@ -22,7 +22,7 @@ import { evaluate, resolve } from "./evaluate.js";
 import { findContext, _loadRemoteTemplates, _loadRemoteTemplatesPhase1, _loadRemoteTemplatesPhase2, _processTemplateIncludes } from "./dom.js";
 import { registerDirective, processTree } from "./registry.js";
 import { _createRouter } from "./router.js";
-import { initDevtools } from "./devtools.js";
+import { initDevtools, _devtoolsEmit } from "./devtools.js";
 
 // Side-effect imports: register built-in filters
 import "./filters.js";
@@ -86,6 +86,15 @@ const NoJS = {
     if (opts.i18n) {
       _config.i18n = { ...prevI18n, ...opts.i18n };
       _i18n.locale = opts.i18n.defaultLocale || _i18n.locale;
+    }
+    if (opts.stores) {
+      for (const [name, data] of Object.entries(opts.stores)) {
+        if (!_stores[name]) {
+          _stores[name] = createContext(data || {});
+          _devtoolsEmit("store:created", { name, keys: Object.keys(data || {}) });
+        }
+      }
+      delete _config.stores;
     }
   },
 

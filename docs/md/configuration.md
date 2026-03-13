@@ -65,6 +65,29 @@
 
 ---
 
+## Pre-initializing Stores
+
+Use `stores` in `NoJS.config()` to create multiple global stores before the DOM is processed.
+This is useful when stores need to exist before any HTML directive runs — for example, when setting auth state from a JWT, or hydrating from `localStorage`.
+
+```html
+<script>
+  NoJS.config({
+    stores: {
+      auth:  { user: null, token: localStorage.getItem('token') },
+      cart:  { items: [], total: 0 },
+      theme: { mode: 'dark', accent: 'blue' }
+    }
+  });
+</script>
+```
+
+Stores created via `config()` behave exactly like those declared with the `store` HTML attribute — they are reactive contexts accessible via `$store.name` in expressions and `NoJS.store.name` in JavaScript.
+
+If a store name already exists, `config()` will **not** overwrite it. This means you can safely call `config()` multiple times without resetting store data.
+
+---
+
 ## Request Interceptors
 
 ```html
