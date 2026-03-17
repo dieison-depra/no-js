@@ -129,6 +129,8 @@ URLs that reference state variables re-fetch automatically when those values cha
 
 Used on forms or triggered via `call`.
 
+> **Tip:** The `call` directive now supports the same attributes as form-based HTTP directives — including `loading`, `headers`, `redirect`, and `body`. See [Actions & Refs → `call`](actions-refs.md) for full details.
+
 ### Form Submission
 
 ```html

@@ -166,7 +166,7 @@ Complete reference of every No.JS directive.
 | Directive | Example | Description |
 |-----------|---------|-------------|
 | `ref` | `ref="input"` | Named element ref |
-| `call` | `call="/api/action"` | Trigger API call |
+| `call` | `call="/api/action" method="post"` | Trigger API call on click |
 | `trigger` | `trigger="event-name"` | Emit custom event |
 | `use` | `use="templateId"` | Instantiate template |
 | `src` (on template) | `src="/tpl.html"` | Remote template (see also: `lazy`) |

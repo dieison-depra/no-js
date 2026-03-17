@@ -44,18 +44,20 @@ No build step. No virtual DOM. No transpiler. No JSX. Just HTML.
 
 ### NPM
 
-```bash
-npm install no-js
-```
+No.JS is distributed via CDN only (no npm package)
+Just add the script tag above to your HTML, no build step required.
 
-```js
-// ESM
-import NoJS from 'no-js';
-await NoJS.init();
+No initialization required, No.JS auto-starts on `DOMContentLoaded`. But you can also configure it before it loads:
 
-// CommonJS
-const NoJS = require('no-js');
-await NoJS.init();
+```html
+<script>
+NoJS.config = {
+  debug: true,
+  router: {
+    useHash: true
+  },
+};
+</script>
 ```
 
 ---

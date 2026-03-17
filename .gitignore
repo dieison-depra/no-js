@@ -24,3 +24,4 @@ dist/
 playwright-report
 test-results
 .github/specs
+.github/reviews

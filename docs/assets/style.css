@@ -755,7 +755,48 @@ code {
   color: var(--primary);
 }
 
+/* ── Default button (unstyled <button> elements in docs) ── */
+button:not([class]) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--primary);
+  color: var(--white);
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+button:not([class]):hover {
+  background: var(--primary-dark);
+}
+button:not([class]):active {
+  transform: scale(0.97);
+}
+button:not([class]):disabled {
+  background: var(--text-dim);
+  color: var(--surface-alt);
+  cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+}
 
+/* ── Disabled state for .btn variants ── */
+.btn:disabled,
+.btn[disabled] {
+  background: var(--text-dim);
+  color: var(--surface-alt);
+  border-color: transparent;
+  cursor: not-allowed;
+  opacity: 0.7;
+  pointer-events: none;
+}
 
 
 /* ══════════════════════════════════════════════════════════════════

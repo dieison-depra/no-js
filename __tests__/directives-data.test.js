@@ -1249,6 +1249,359 @@ describe('call directive', () => {
     expect(errorEl).not.toBeNull();
     expect(errorEl.textContent).toBe('Server error');
   });
+
+  test('call with loading template shows template while in-flight', async () => {
+    let resolveFetch;
+    global.fetch.mockImplementation(() => new Promise((resolve) => { resolveFetch = resolve; }));
+
+    const tpl = document.createElement('template');
+    tpl.id = 'spinner';
+    tpl.innerHTML = '<span>Loading...</span>';
+    document.body.appendChild(tpl);
+
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const btn = document.createElement('button');
+    btn.textContent = 'Click me';
+    btn.setAttribute('call', '/api/action');
+    btn.setAttribute('loading', 'spinner');
+    parent.appendChild(btn);
+    document.body.appendChild(parent);
+
+    processTree(parent);
+    btn.click();
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(btn.innerHTML).toContain('Loading...');
+    expect(btn.disabled).toBe(true);
+
+    resolveFetch({
+      ok: true,
+      headers: { get: () => 'application/json' },
+      text: () => Promise.resolve(JSON.stringify({ ok: true })),
+    });
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(btn.innerHTML).toContain('Click me');
+    expect(btn.disabled).toBe(false);
+  });
+
+  test('call with loading template disables element during request', async () => {
+    let resolveFetch;
+    global.fetch.mockImplementation(() => new Promise((resolve) => { resolveFetch = resolve; }));
+
+    const tpl = document.createElement('template');
+    tpl.id = 'loading-tpl';
+    tpl.innerHTML = '<span>Wait</span>';
+    document.body.appendChild(tpl);
+
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const btn = document.createElement('button');
+    btn.setAttribute('call', '/api/action');
+    btn.setAttribute('loading', 'loading-tpl');
+    parent.appendChild(btn);
+    document.body.appendChild(parent);
+
+    processTree(parent);
+    btn.click();
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(btn.disabled).toBe(true);
+
+    resolveFetch({
+      ok: true,
+      headers: { get: () => 'application/json' },
+      text: () => Promise.resolve(JSON.stringify({ ok: true })),
+    });
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(btn.disabled).toBe(false);
+  });
+
+  test('call with loading template restores on error', async () => {
+    global.fetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+      headers: { get: () => 'application/json' },
+      json: () => Promise.resolve({ message: 'fail' }),
+    });
+
+    const tpl = document.createElement('template');
+    tpl.id = 'load-err';
+    tpl.innerHTML = '<span>Loading...</span>';
+    document.body.appendChild(tpl);
+
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const btn = document.createElement('button');
+    btn.textContent = 'Original';
+    btn.setAttribute('call', '/api/fail');
+    btn.setAttribute('loading', 'load-err');
+    parent.appendChild(btn);
+    document.body.appendChild(parent);
+
+    processTree(parent);
+    btn.click();
+    await new Promise((r) => setTimeout(r, 100));
+
+    expect(btn.innerHTML).toContain('Original');
+    expect(btn.disabled).toBe(false);
+  });
+
+  test('call aborts previous request on rapid clicks (switchMap)', async () => {
+    let fetchCount = 0;
+    const signals = [];
+    global.fetch.mockImplementation((url, opts) => {
+      fetchCount++;
+      signals.push(opts.signal);
+      return new Promise((resolve) => {
+        setTimeout(() => resolve({
+          ok: true,
+          headers: { get: () => 'application/json' },
+          text: () => Promise.resolve(JSON.stringify({ n: fetchCount })),
+        }), 200);
+      });
+    });
+
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const btn = document.createElement('button');
+    btn.setAttribute('call', '/api/data');
+    parent.appendChild(btn);
+    document.body.appendChild(parent);
+
+    processTree(parent);
+
+    btn.click();
+    await new Promise((r) => setTimeout(r, 10));
+    btn.click();
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(signals[0].aborted).toBe(true);
+  });
+
+  test('call aborted request does not trigger error template', async () => {
+    let fetchCount = 0;
+    global.fetch.mockImplementation((url, opts) => {
+      fetchCount++;
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => resolve({
+          ok: true,
+          headers: { get: () => 'application/json' },
+          text: () => Promise.resolve(JSON.stringify({ n: fetchCount })),
+        }), 200);
+        if (opts.signal) {
+          opts.signal.addEventListener('abort', () => {
+            clearTimeout(timer);
+            const err = new DOMException('The operation was aborted.', 'AbortError');
+            reject(err);
+          });
+        }
+      });
+    });
+
+    const errTpl = document.createElement('template');
+    errTpl.id = 'abort-err';
+    errTpl.innerHTML = '<span class="abort-error">Error!</span>';
+    document.body.appendChild(errTpl);
+
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const btn = document.createElement('button');
+    btn.setAttribute('call', '/api/data');
+    btn.setAttribute('error', 'abort-err');
+    parent.appendChild(btn);
+    document.body.appendChild(parent);
+
+    processTree(parent);
+
+    btn.click();
+    await new Promise((r) => setTimeout(r, 10));
+    btn.click();
+    await new Promise((r) => setTimeout(r, 300));
+
+    expect(parent.querySelector('.abort-error')).toBeNull();
+  });
+
+  test('call logs warning on error without error template', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    global.fetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+      headers: { get: () => 'application/json' },
+      json: () => Promise.resolve({ message: 'Server error' }),
+    });
+
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const btn = document.createElement('button');
+    btn.setAttribute('call', '/api/fail');
+    parent.appendChild(btn);
+    document.body.appendChild(parent);
+
+    processTree(parent);
+    btn.click();
+    await new Promise((r) => setTimeout(r, 100));
+
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  test('call emits fetch:success event', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'application/json' },
+      text: () => Promise.resolve(JSON.stringify({ ok: true })),
+    });
+
+    const handler = jest.fn();
+    _eventBus['fetch:success'] = [handler];
+
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const btn = document.createElement('button');
+    btn.setAttribute('call', '/api/event-test');
+    parent.appendChild(btn);
+    document.body.appendChild(parent);
+
+    processTree(parent);
+    btn.click();
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ url: '/api/event-test', data: { ok: true } }),
+    );
+  });
+
+  test('call emits fetch:error event', async () => {
+    global.fetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+      headers: { get: () => 'application/json' },
+      json: () => Promise.resolve({ message: 'fail' }),
+    });
+
+    const handler = jest.fn();
+    _eventBus['fetch:error'] = [handler];
+
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const btn = document.createElement('button');
+    btn.setAttribute('call', '/api/fail-event');
+    parent.appendChild(btn);
+    document.body.appendChild(parent);
+
+    processTree(parent);
+    btn.click();
+    await new Promise((r) => setTimeout(r, 100));
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ url: '/api/fail-event' }),
+    );
+  });
+
+  test('call with redirect navigates after success', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'application/json' },
+      text: () => Promise.resolve(JSON.stringify({ ok: true })),
+    });
+
+    const mockRouter = { push: jest.fn() };
+    setRouterInstance(mockRouter);
+
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const btn = document.createElement('button');
+    btn.setAttribute('call', '/api/login');
+    btn.setAttribute('redirect', '/dashboard');
+    parent.appendChild(btn);
+    document.body.appendChild(parent);
+
+    processTree(parent);
+    btn.click();
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(mockRouter.push).toHaveBeenCalledWith('/dashboard');
+    setRouterInstance(null);
+  });
+
+  test('call with headers passes them to fetch', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'application/json' },
+      text: () => Promise.resolve(JSON.stringify({ ok: true })),
+    });
+
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const btn = document.createElement('button');
+    btn.setAttribute('call', '/api/secure');
+    btn.setAttribute('headers', '{"X-Custom":"val"}');
+    parent.appendChild(btn);
+    document.body.appendChild(parent);
+
+    processTree(parent);
+    btn.click();
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/secure',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'X-Custom': 'val' }),
+      }),
+    );
+  });
+
+  test('call defaults as to "data"', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'application/json' },
+      text: () => Promise.resolve(JSON.stringify({ value: 99 })),
+    });
+
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const btn = document.createElement('button');
+    btn.setAttribute('call', '/api/default-as');
+    parent.appendChild(btn);
+    document.body.appendChild(parent);
+
+    processTree(parent);
+    btn.click();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const ctx = findContext(btn);
+    expect(ctx.data).toEqual({ value: 99 });
+  });
+
+  test('call with into and no as writes "data" key to store', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'application/json' },
+      text: () => Promise.resolve(JSON.stringify({ items: [1, 2] })),
+    });
+
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{}');
+    const btn = document.createElement('button');
+    btn.setAttribute('call', '/api/store-default');
+    btn.setAttribute('into', 'myStore');
+    parent.appendChild(btn);
+    document.body.appendChild(parent);
+
+    processTree(parent);
+    btn.click();
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(_stores.myStore).toBeDefined();
+    expect(_stores.myStore.data).toEqual({ items: [1, 2] });
+  });
 });
 
 
