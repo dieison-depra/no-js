@@ -45,14 +45,20 @@ import "./directives/dnd.js";
 //  PUBLIC API
 // ═══════════════════════════════════════════════════════════════════════
 
+function _stripBase(pathname) {
+  const base = (_config.router.base || "/").replace(/\/$/, "");
+  if (!base) return pathname || "/";
+  const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return pathname.replace(new RegExp("^" + escaped), "") || "/";
+}
+
 function _getDefaultRoutePath() {
   if (typeof window === "undefined") return null;
   const routerCfg = _config.router || {};
-  if (routerCfg.mode === "hash") {
+  if (routerCfg.useHash) {
     return window.location.hash.slice(1) || "/";
   }
-  const base = (routerCfg.base || "/").replace(/\/$/, "");
-  return window.location.pathname.replace(base, "") || "/";
+  return _stripBase(window.location.pathname);
 }
 
 const NoJS = {
@@ -77,13 +83,28 @@ const NoJS = {
     const prevTemplates = { ..._config.templates };
     const prevRouter = { ..._config.router };
     const prevI18n = { ..._config.i18n };
+    if ("csp" in opts) {
+      _warn("csp config option removed — No.JS is now CSP-safe by default");
+      delete opts.csp;
+    }
     Object.assign(_config, opts);
     if (opts.headers)
       _config.headers = { ...prevHeaders, ...opts.headers };
     if (opts.csrf) _config.csrf = opts.csrf;
     if (opts.cache) _config.cache = { ...prevCache, ...opts.cache };
     if (opts.templates) _config.templates = { ...prevTemplates, ...opts.templates };
-    if (opts.router) _config.router = { ...prevRouter, ...opts.router };
+    if (opts.router) {
+      if ("mode" in opts.router && !("useHash" in opts.router)) {
+        _log(
+          'router.mode is deprecated. Use router.useHash instead: ' +
+          'mode: "hash" → useHash: true, mode: "history" → useHash: false',
+          "warn"
+        );
+        opts.router.useHash = opts.router.mode === "hash";
+        delete opts.router.mode;
+      }
+      _config.router = { ...prevRouter, ...opts.router };
+    }
     if (opts.i18n) {
       _config.i18n = { ...prevI18n, ...opts.i18n };
       _i18n.locale = opts.i18n.defaultLocale || _i18n.locale;
@@ -205,14 +226,14 @@ const NoJS = {
     return _stores;
   },
 
+  // Notify global store watchers (for external JS mutations)
+  notify() {
+    _notifyStoreWatchers();
+  },
+
   // Access router
   get router() {
     return _routerInstance;
-  },
-
-  // Notify all store watchers (use after mutating NoJS.store from external JS)
-  notify() {
-    _notifyStoreWatchers();
   },
 
   // Utilities (for custom directives)
@@ -223,7 +244,7 @@ const NoJS = {
   resolve,
 
   // Version
-  version: "1.7.0",
+  version: "1.9.0",
 };
 
 export default NoJS;

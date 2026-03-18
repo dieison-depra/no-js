@@ -6,7 +6,7 @@
 import { _validators, _onDispose } from "../globals.js";
 import { createContext } from "../context.js";
 import { findContext, _cloneTemplate } from "../dom.js";
-import { registerDirective, processTree } from "../registry.js";
+import { registerDirective, processTree, _disposeChildren } from "../registry.js";
 import { evaluate } from "../evaluate.js";
 
 // ── ValidityState → rule name mapping ────────────────────────────────
@@ -316,7 +316,7 @@ registerDirective("validate", {
           // $form.valid reflects real state (keeps submit disabled)
           if (!fieldValid) valid = false;
 
-          // $form.errors only shows errors for non-pristine fields
+          // $form.errors only shows errors for interacted fields
           if (!fieldValid && fieldInteracted) {
             errors[field.name] = topError.message;
             errorCount++;
@@ -544,6 +544,7 @@ registerDirective("error-boundary", {
           { err: { message } },
           ctx,
         );
+        _disposeChildren(el);
         el.innerHTML = "";
         const wrapper = document.createElement("div");
         wrapper.style.display = "contents";

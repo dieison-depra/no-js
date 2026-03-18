@@ -32,14 +32,14 @@
 
     // Router
     router: {
-      mode: 'hash',           // 'hash' | 'history'
+      useHash: false,          // true = hash mode, false = history mode (default)
       base: '/',
       scrollBehavior: 'top',  // 'top' | 'preserve' | 'smooth'
       templates: 'pages',       // Default base path for file-based routing (default: 'pages')
       ext: '.tpl'              // Default file extension for file-based routing (fallback: '.html')
     },
-    // Note: In hash mode, standard anchor links (href="#id")
-    // are automatically intercepted — they scroll to the target
+    // Note: Anchor links (href="#id") are automatically
+    // intercepted in both modes — they scroll to the target
     // element without triggering route navigation.
 
     // i18n
@@ -58,7 +58,6 @@
 
     // Security
     sanitize: true,            // Sanitize bind-html
-    csp: 'strict'              // Restrict expressions for CSP compliance
   });
 </script>
 ```
@@ -102,6 +101,7 @@ If a store name already exists, `config()` will **not** overwrite it. This means
   NoJS.interceptor('response', (response, url) => {
     if (response.status === 401) {
       NoJS.store.auth.user = null;
+      NoJS.notify(); // flush DOM bindings before redirect
       NoJS.router.push('/login');
       throw new Error('Unauthorized');
     }
@@ -118,7 +118,7 @@ If a store name already exists, `config()` will **not** overwrite it. This means
 
 - `bind` always sets `textContent`, never `innerHTML` — safe by default.
 - `bind-html` sanitizes content through a DOMPurify-compatible sanitizer.
-- Template expressions are evaluated in a sandboxed `Function()` scope — no access to `window`, `document`, or globals unless explicitly exposed.
+- Template expressions are evaluated by a custom sandboxed parser — no `eval()` or `Function()` is used, and dangerous properties like `__proto__` and `constructor` are blocked.
 
 ### CSRF Protection
 
@@ -135,13 +135,7 @@ If a store name already exists, `config()` will **not** overwrite it. This means
 
 ### Content Security Policy
 
-No.JS uses `new Function()` for expression evaluation. If your CSP blocks `unsafe-eval`, use the precompiled mode:
-
-```html
-<script src="dist/iife/no.js" data-csp="strict"></script>
-```
-
-In strict mode, expressions are limited to dot-path access and simple comparisons (no arbitrary JS).
+No.JS uses a custom expression parser that is fully CSP-compliant — no `eval()` or `Function()` constructor is used. No `unsafe-eval` directive is required in your Content Security Policy.
 
 ---
 

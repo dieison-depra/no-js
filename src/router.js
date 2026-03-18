@@ -10,8 +10,18 @@ import { processTree, _disposeTree } from "./registry.js";
 import { _animateIn } from "./animations.js";
 import { _devtoolsEmit } from "./devtools.js";
 
+const _BUILTIN_404_HTML = '<div style="text-align:center;padding:3rem 1rem;font-family:system-ui,sans-serif"><h1 style="font-size:4rem;margin:0;opacity:.3">404</h1><p style="font-size:1.25rem;color:#666">Page not found</p></div>';
+
+function _stripBase(pathname) {
+  const base = (_config.router.base || "/").replace(/\/$/, "");
+  if (!base) return pathname || "/";
+  const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return pathname.replace(new RegExp("^" + escaped), "") || "/";
+}
+
 export function _createRouter() {
   const routes = [];
+  const _wildcards = new Map();
   let current = { path: "", params: {}, query: {}, hash: "" };
   const listeners = new Set();
   const _autoTemplateCache = new Map();
@@ -68,6 +78,7 @@ export function _createRouter() {
 
     const matched = matchRoute(cleanPath);
     if (matched) {
+      current.matched = true;
       current.params = matched.params;
 
       // Guard check
@@ -85,15 +96,34 @@ export function _createRouter() {
           return;
         }
       }
+    } else {
+      current.matched = false;
+
+      // Guard check on wildcard template (default outlet)
+      const wildcardTpl = _wildcards.get("default");
+      if (wildcardTpl) {
+        const guardExpr = wildcardTpl.getAttribute("guard");
+        const redirectPath = wildcardTpl.getAttribute("redirect");
+        if (guardExpr) {
+          const ctx = createContext({}, null);
+          ctx.__raw.$store = _stores;
+          ctx.__raw.$route = current;
+          const allowed = evaluate(guardExpr, ctx);
+          if (!allowed && redirectPath) {
+            await navigate(redirectPath, true);
+            return;
+          }
+        }
+      }
     }
 
     // Update URL
-    if (_config.router.mode === "hash") {
+    if (_config.router.useHash) {
       const newHash = "#" + path;
       if (replace) window.location.replace(newHash);
       else window.location.hash = path;
     } else {
-      const fullPath = _config.router.base.replace(/\/$/, "") + path;
+      const fullPath = (_config.router.base || "/").replace(/\/$/, "") + path;
       if (replace) window.history.replaceState({}, "", fullPath);
       else window.history.pushState({}, "", fullPath);
     }
@@ -157,15 +187,46 @@ export function _createRouter() {
         }
       }
 
+      // ── Wildcard / 404 fallback when no template matched ──
+      if (!tpl || tpl.__loadFailed) {
+        // Only apply wildcard fallback when no explicit route matched
+        // or when a file-based template failed to load.
+        // When an explicit route matched but doesn't cover this outlet, just clear it.
+        if (!matched || tpl?.__loadFailed) {
+          const wildcardTpl = _wildcards.get(outletName)
+            || (outletName !== "default" ? _wildcards.get("default") : null);
+          if (wildcardTpl) {
+            tpl = wildcardTpl;
+          }
+        }
+      }
+
       // Always clear first — dispose watchers/listeners before wiping DOM
       _disposeTree(outletEl);
       outletEl.innerHTML = "";
 
-      if (tpl) {
+      if (tpl && !tpl.__loadFailed) {
         // Load template on-demand if not yet fetched
         if (tpl.getAttribute("src") && !tpl.__srcLoaded) {
           _log("Loading route template on demand:", tpl.getAttribute("src"));
           await _loadTemplateElement(tpl);
+        }
+
+        // If template load failed, try wildcard fallback
+        if (tpl.__loadFailed) {
+          const wildcardTpl = _wildcards.get(outletName)
+            || (outletName !== "default" ? _wildcards.get("default") : null);
+          if (wildcardTpl && !wildcardTpl.__loadFailed) {
+            tpl = wildcardTpl;
+            if (tpl.getAttribute("src") && !tpl.__srcLoaded) {
+              await _loadTemplateElement(tpl);
+            }
+          }
+          // If still failed (no usable wildcard, or wildcard itself failed), use built-in
+          if (!tpl || tpl.__loadFailed) {
+            outletEl.innerHTML = _BUILTIN_404_HTML;
+            continue;
+          }
         }
 
         // i18n namespace loading for route template
@@ -209,6 +270,9 @@ export function _createRouter() {
 
         _clearDeclared(wrapper);
         processTree(wrapper);
+      } else if (!matched || tpl?.__loadFailed) {
+        // No route matched and no wildcard — inject built-in 404
+        outletEl.innerHTML = _BUILTIN_404_HTML;
       }
     }
 
@@ -278,7 +342,7 @@ export function _createRouter() {
       const backgroundFetches = [];
 
       for (const [path, lazy] of routeLazy) {
-        if (lazy === "ondemand" || path === current.path) continue;
+        if (lazy === "ondemand" || path === current.path || path === "*") continue;
         const segment = path === "/" ? indexName : path.replace(/^\//, "");
         const fullSrc = baseSrc + segment + ext;
         const cacheKey = outletName + ":" + fullSrc;
@@ -328,6 +392,10 @@ export function _createRouter() {
       return () => listeners.delete(fn);
     },
     register(path, templateEl, outlet = "default") {
+      if (path === "*") {
+        _wildcards.set(outlet, templateEl);
+        return;
+      }
       const entry = _getOrCreateEntry(path);
       entry.outlets[outlet] = templateEl;
     },
@@ -336,6 +404,10 @@ export function _createRouter() {
       document.querySelectorAll("template[route]").forEach((tpl) => {
         const path = tpl.getAttribute("route");
         const outlet = tpl.getAttribute("outlet") || "default";
+        if (path === "*") {
+          _wildcards.set(outlet, tpl);
+          return;
+        }
         const entry = _getOrCreateEntry(path);
         entry.outlets[outlet] = tpl;
       });
@@ -350,18 +422,21 @@ export function _createRouter() {
           return;
         }
 
-        // In hash mode, intercept plain anchor links (href="#id") so they
-        // scroll to the target element instead of conflicting with the router.
-        if (_config.router.mode === "hash") {
-          const anchor = e.target.closest('a[href^="#"]');
-          if (anchor && !anchor.hasAttribute("route")) {
-            const href = anchor.getAttribute("href");
-            const id = href.slice(1);
-            if (id && !id.startsWith("/")) {
-              const target = document.getElementById(id);
-              if (target) {
-                e.preventDefault();
-                _scrollToAnchor(id, target);
+        // Intercept plain anchor links (href="#id") in BOTH modes
+        // so they scroll to the target element without triggering
+        // route navigation or popstate re-renders.
+        const anchor = e.target.closest('a[href^="#"]');
+        if (anchor && !anchor.hasAttribute("route")) {
+          const href = anchor.getAttribute("href");
+          const id = href.slice(1);
+          if (id && !id.startsWith("/")) {
+            const target = document.getElementById(id);
+            if (target) {
+              e.preventDefault();
+              _scrollToAnchor(id, target);
+              // In history mode, update URL hash without triggering popstate
+              if (!_config.router.useHash) {
+                window.history.replaceState(null, "", "#" + id);
               }
             }
           }
@@ -369,7 +444,7 @@ export function _createRouter() {
       });
 
       // Listen for URL changes
-      if (_config.router.mode === "hash") {
+      if (_config.router.useHash) {
         window.addEventListener("hashchange", () => {
           const raw = window.location.hash.slice(1) || "/";
           if (!raw.startsWith("/")) {
@@ -390,12 +465,19 @@ export function _createRouter() {
         await navigate(path, true);
       } else {
         window.addEventListener("popstate", () => {
-          const path =
-            window.location.pathname.replace(_config.router.base, "") || "/";
+          const path = _stripBase(window.location.pathname);
+          // Guard: don't re-navigate if only the hash changed
+          if (path === current.path) {
+            const hash = window.location.hash.slice(1);
+            if (hash) {
+              const el = document.getElementById(hash);
+              if (el) _scrollToAnchor(hash, el);
+            }
+            return;
+          }
           navigate(path, true);
         });
-        const path =
-          window.location.pathname.replace(_config.router.base, "") || "/";
+        const path = _stripBase(window.location.pathname);
         await navigate(path, true);
       }
 

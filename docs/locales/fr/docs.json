@@ -9,13 +9,13 @@
       "introduction": {
         "title": "Introduction",
         "text": "No.JS est un framework réactif HTML-first. Construisez des applications web dynamiques et orientées données en utilisant uniquement des attributs HTML — pas de build, pas de DOM virtuel, pas de JSX.",
-        "callout": "~20 Ko gzippé · Zéro dépendance · Fonctionne dans tous les navigateurs modernes · Aucune étape de build requise"
+        "callout": "~24 Ko gzippé · Zéro dépendance · Fonctionne dans tous les navigateurs modernes · Aucune étape de build requise"
       },
       "installation": {
         "title": "Installation",
         "cdnSubtitle": "CDN (recommandé)",
         "selfHostedSubtitle": "Auto-hébergé",
-        "selfHostedText": "Téléchargez dist/iife/no.js et incluez-le avec une balise <script>. C'est un fichier unique, ~20 Ko gzippé."
+        "selfHostedText": "Téléchargez dist/iife/no.js et incluez-le avec une balise <script>. C'est un fichier unique, ~24 Ko gzippé."
       },
       "quickStart": {
         "title": "Démarrage rapide",
@@ -184,7 +184,9 @@
         "lazyOnDemand": "Charger le template de route uniquement lors de la première visite (templates de route uniquement)",
         "routerForward": "Naviguer en avant dans l'historique",
         "routerOn": "S'abonner aux changements de route",
+        "routeWildcard": "Route wildcard catch-all 404",
         "routerCurrent": "Objet de la route courante",
+        "routeMatched": "<code>true</code> si une route explicite a correspondu, <code>false</code> pour wildcard/fallback",
         "i18nNs": "Dérivation automatique du namespace i18n à partir du nom de fichier de route",
         "routeViewSrc": "Point de sortie de routage basé sur les fichiers",
         "routeIndex": "Nom de fichier pour la racine <code>/</code> (défaut <code>\"index\"</code>)",
@@ -300,6 +302,11 @@
       "persistence": {
         "title": "Persistance de l'état",
         "text": "Persistez l'état entre les rechargements de page en utilisant localStorage ou sessionStorage."
+      },
+      "notify": {
+        "title": "NoJS.notify() — Mettre à jour le Store",
+        "text": "Lorsque du JavaScript externe modifie un store via NoJS.store, appelez NoJS.notify() pour mettre à jour tous les bindings du DOM.",
+        "callout": "Nécessaire uniquement lors de la modification de NoJS.store depuis du JavaScript pur — en dehors des expressions HTML. Les modifications dans on:click ou bind sont gérées automatiquement."
       }
     },
     "dataBinding": {
@@ -592,7 +599,8 @@
         "path": "Chemin courant (ex. \"/users/42\")",
         "params": "Paramètres de route (ex. { id: \"42\" })",
         "query": "Paramètres de chaîne de requête (ex. { q: \"hello\" })",
-        "hash": "Hash de l'URL (ex. \"#section\")"
+        "hash": "Hash de l'URL (ex. \"#section\")",
+        "matched": "Si une route explicite a correspondu (true) ou si un wildcard/fallback est en cours de rendu (false)"
       },
       "activeStyle": {
         "title": "Style de route active"
@@ -651,8 +659,8 @@
         "ondemandDesc": "Valable uniquement sur les templates de route. Jamais préchargé — récupéré lors de la première navigation de l'utilisateur vers cette route. Idéal pour les pages lourdes ou rarement visitées."
       },
       "anchor": {
-        "title": "Liens d'ancrage en mode hash",
-        "text1": "En mode hash, le hash de l'URL (#) est utilisé pour le routage (ex. #/docs). Cela entre normalement en conflit avec les liens d'ancrage standard comme <a href=\"#section\"> — mais No.JS le gère automatiquement.",
+        "title": "Liens d'ancrage",
+        "text1": "En utilisant useHash: true, le hash de l'URL (#) est utilisé pour le routage (ex. #/docs). Cela entre normalement en conflit avec les liens d'ancrage standard comme <a href=\"#section\"> — mais No.JS le gère automatiquement dans les deux modes (hash et history).",
         "text2": "Les liens d'ancrage qui pointent vers un id d'élément sur la page sont interceptés par le routeur : l'élément cible est scrollé en vue de manière fluide, et le lien cliqué reçoit une classe active. La route elle-même n'est pas affectée.",
         "howItWorks": "Comment ça marche :",
         "list1": "Cliquer sur <a href=\"#introduction\"> fait défiler vers <div id=\"introduction\"> avec un comportement fluide",
@@ -665,6 +673,29 @@
         "title": "Outlets nommés (route-view)",
         "text": "Plusieurs outlets route-view peuvent coexister sur la même page. Donnez un nom à chaque outlet via la valeur de l'attribut, et dirigez les templates de route vers des outlets spécifiques en utilisant l'attribut outlet.",
         "callout": "Les outlets sans template correspondant pour la route courante sont toujours vidés lors de la navigation."
+      },
+      "catchAll": {
+        "title": "404 / Routes Catch-All",
+        "text": "Utilisez <code>route=\"*\"</code> pour définir un template <strong>wildcard catch-all</strong> qui s'affiche lorsqu'aucune route explicite ne correspond au chemin courant. Le wildcard est toujours évalué en dernier, quel que soit l'ordre dans le DOM.",
+        "text2": "Les routes explicites <strong>ont toujours la priorité</strong> — le wildcard ne se déclenche que lorsque <code>matchRoute()</code> ne retourne aucune correspondance.",
+        "fallbackTitle": "Fallback 404 Automatique",
+        "fallbackText": "Si vous ne définissez pas de template <code>route=\"*\"</code>, No.JS affiche automatiquement une page 404 minimale intégrée lorsqu'aucune route ne correspond. Cela garantit que les utilisateurs voient toujours quelque chose de significatif au lieu d'un outlet vide.",
+        "fallbackTip": "Le fallback intégré est volontairement minimal et sans style. Définissez votre propre template <code>route=\"*\"</code> pour les applications en production.",
+        "namedTitle": "Wildcards dans les Outlets Nommés",
+        "namedText": "Chaque outlet nommé peut avoir son propre fallback wildcard. Lorsqu'aucune route ne correspond pour un outlet, le framework résout les fallbacks dans cet ordre :",
+        "namedList1": "<strong>Wildcard local</strong> — <code>&lt;template route=\"*\" outlet=\"{name}\"&gt;</code> pour cet outlet spécifique",
+        "namedList2": "<strong>Wildcard global</strong> — <code>&lt;template route=\"*\"&gt;</code> (le wildcard de l'outlet par défaut), utilisé uniquement pour les outlets non par défaut",
+        "namedList3": "<strong>404 intégré</strong> — la page de fallback minimale du framework",
+        "namedText2": "Si la barre latérale n'a pas de wildcard local, elle recourt au <code>route=\"*\"</code> global. Si aucun n'existe, le 404 intégré est utilisé.",
+        "matchedTitle": "$route.matched",
+        "matchedText": "Le booléen <code>$route.matched</code> vous indique si le chemin courant a trouvé une route explicite (<code>true</code>) ou un wildcard/fallback (<code>false</code>). Utilisez-le pour le rendu conditionnel dans vos templates :",
+        "matchedText2": "<code>$route.matched</code> est défini <strong>avant</strong> le rendu du template, il est donc toujours disponible pendant le traitement.",
+        "remoteTitle": "Template 404 Distant",
+        "remoteText": "Les routes wildcard supportent tous les mêmes attributs que les templates de route classiques, y compris <code>src</code> pour le chargement distant :",
+        "remoteText2": "Le template distant est récupéré, mis en cache et rendu comme tout autre template de route — et il a un accès complet à <code>$route.path</code>, <code>$route.matched</code>, et toutes les autres fonctionnalités du framework.",
+        "fileBasedTitle": "404 dans le Routage Basé sur les Fichiers",
+        "fileBasedText": "Lors de l'utilisation du routage basé sur les fichiers, naviguer vers un chemin dont le fichier <code>.tpl</code> n'existe pas sur le serveur (HTTP 404 ou autre erreur) déclenche automatiquement la chaîne de fallback wildcard.",
+        "fileBasedText2": "La réponse HTTP en échec n'est <strong>pas</strong> mise en cache — les navigations ultérieures vers d'autres chemins ne sont pas affectées."
       }
     },
     "formsValidation": {
@@ -1125,9 +1156,6 @@
         "devtoolsTitle": "devtools",
         "devtoolsType": "Type : boolean | Par défaut : false",
         "devtoolsText": "Active le panneau devtools No.JS, accessible via window.__NOJS_DEVTOOLS__. Lorsqu'actif, il expose l'état réactif, les directives enregistrées, les routes actives et les arborescences de composants pour l'inspection dans la console du navigateur.",
-        "cspTitle": "csp",
-        "cspType": "Type : string | null | Par défaut : null",
-        "cspText": "Définir à 'strict' pour désactiver l'utilisation de new Function() pour l'évaluation des expressions. Ceci est requis pour les environnements avec une Content Security Policy qui bloque unsafe-eval. En mode strict, les expressions sont limitées à l'accès par chemin de propriété et aux comparaisons simples — le JavaScript arbitraire n'est pas autorisé.",
         "templatesCacheTitle": "templates.cache",
         "templatesCacheType": "Type : boolean | Par défaut : true",
         "templatesCacheText1": "Contrôle si le contenu HTML des fichiers .tpl récupérés à distance est stocké dans un Map en mémoire après la première requête. Lors des navigations répétées vers la même route, le HTML en cache est utilisé directement et aucune requête HTTP n'est effectuée. Le cache persiste pendant la durée de la session de page (pas de TTL — les assets de template sont statiques).",
@@ -1157,11 +1185,10 @@
         "xssTitle": "Protection XSS",
         "xssList1": "bind définit toujours textContent, jamais innerHTML — sûr par défaut.",
         "xssList2": "bind-html nettoie le contenu en utilisant un sanitizer intégré basé sur les regex (supprime les balises <script>, bloque les gestionnaires d'événements on*, retire les URI javascript:).",
-        "xssList3": "Les expressions de template sont évaluées dans une portée Function() sandboxée — aucun accès à window, document ou aux globales sauf si explicitement exposé.",
+        "xssList3": "Les expressions de template sont évaluées par un parser sandboxé personnalisé — aucun eval() ni Function() n'est utilisé, et les propriétés dangereuses comme __proto__ et constructor sont bloquées.",
         "csrfTitle": "Protection CSRF",
         "cspSecTitle": "Content Security Policy",
-        "cspSecText1": "No.JS utilise new Function() pour l'évaluation des expressions. Si votre CSP bloque unsafe-eval, utilisez le mode précompilé :",
-        "cspSecText2": "En mode strict, les expressions sont limitées à l'accès par chemin de propriété et aux comparaisons simples (pas de JS arbitraire)."
+        "cspSecText1": "No.JS utilise un parser d'expressions personnalisé entièrement compatible CSP — aucun eval() ni constructeur Function() n'est utilisé. Aucune directive unsafe-eval n'est requise dans votre Content Security Policy."
       }
     }
   }

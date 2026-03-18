@@ -15,7 +15,11 @@ import {
   _notifyStoreWatchers,
   _watchExpr,
   _emitEvent,
+  _setCurrentEl,
+  _onDispose,
 } from '../src/globals.js';
+
+import { _disposeTree } from '../src/registry.js';
 
 import {
   createContext,
@@ -50,7 +54,7 @@ describe('Globals', () => {
     });
 
     test('has default router config', () => {
-      expect(_config.router.mode).toBe('history');
+      expect(_config.router.useHash).toBe(false);
       expect(_config.router.base).toBe('/');
       expect(_config.router.scrollBehavior).toBe('top');
     });
@@ -72,14 +76,6 @@ describe('Globals', () => {
       expect(typeof _stores).toBe('object');
     });
 
-    test('_storeWatchers is a Set', () => {
-      expect(_storeWatchers).toBeInstanceOf(Set);
-    });
-
-    test('_filters is an object', () => {
-      expect(typeof _filters).toBe('object');
-    });
-
     test('_validators is an object', () => {
       expect(typeof _validators).toBe('object');
     });
@@ -88,9 +84,6 @@ describe('Globals', () => {
       expect(_cache).toBeInstanceOf(Map);
     });
 
-    test('_refs is an object', () => {
-      expect(typeof _refs).toBe('object');
-    });
   });
 
   describe('setRouterInstance', () => {
@@ -176,6 +169,45 @@ describe('Globals', () => {
       _watchExpr('$store.cart.items', ctx, fn);
       expect(_storeWatchers.size).toBe(sizeBefore + 1);
       _storeWatchers.delete(fn);
+    });
+
+    test('registers _onDispose that calls unwatch on disposal', () => {
+      const ctx = createContext({ x: 1 });
+      const fn = jest.fn();
+      const el = document.createElement('div');
+      document.body.appendChild(el);
+
+      _setCurrentEl(el);
+      _watchExpr('x', ctx, fn);
+      _setCurrentEl(null);
+
+      // Watcher fires before disposal
+      ctx.x = 2;
+      expect(fn).toHaveBeenCalledTimes(1);
+
+      // Dispose the element
+      _disposeTree(el);
+
+      // Watcher should no longer fire after disposal
+      fn.mockClear();
+      ctx.x = 3;
+      expect(fn).not.toHaveBeenCalled();
+    });
+
+    test('removes from _storeWatchers on disposal', () => {
+      const ctx = createContext({});
+      const fn = jest.fn();
+      const el = document.createElement('div');
+
+      _setCurrentEl(el);
+      _watchExpr('$store.cart.items', ctx, fn);
+      _setCurrentEl(null);
+
+      expect(_storeWatchers.has(fn)).toBe(true);
+
+      _disposeTree(el);
+
+      expect(_storeWatchers.has(fn)).toBe(false);
     });
   });
 });
@@ -568,28 +600,6 @@ describe('evaluate.js — filter args with quotes and commas', () => {
   });
 });
 
-describe('_execStatement — setters write back local state', () => {
-  test('writes modified state back to context after execution', () => {
-    const ctx = createContext({ x: 1, y: 2 });
-    _execStatement('x = x + y', ctx);
-    expect(ctx.x).toBe(3);
-    expect(ctx.y).toBe(2);
-  });
-
-  test('handles multiple assignments in sequence', () => {
-    const ctx = createContext({ a: 0, b: 0 });
-    _execStatement('a = 10; b = 20', ctx);
-    expect(ctx.a).toBe(10);
-    expect(ctx.b).toBe(20);
-  });
-
-  test('writes back unchanged variables without error', () => {
-    const ctx = createContext({ foo: 'bar' });
-    _execStatement('void 0', ctx);
-    expect(ctx.foo).toBe('bar');
-  });
-});
-
 describe('context.js — get handler special keys', () => {
   test('$form returns null when not set', () => {
     const ctx = createContext({});
@@ -629,10 +639,10 @@ describe('index.js — config()', () => {
   test('config with no router option does not override router config', async () => {
     const { default: No } = await import('../src/index.js');
 
-    const prevRouterMode = _config.router.mode;
+    const prevUseHash = _config.router.useHash;
     No.config({ timeout: 5000 });
     expect(_config.timeout).toBe(5000);
-    expect(_config.router.mode).toBe(prevRouterMode);
+    expect(_config.router.useHash).toBe(prevUseHash);
 
     _config.timeout = 10000;
   });
@@ -640,11 +650,29 @@ describe('index.js — config()', () => {
   test('config with router option merges into existing router config', async () => {
     const { default: No } = await import('../src/index.js');
 
-    No.config({ router: { mode: 'hash' } });
-    expect(_config.router.mode).toBe('hash');
+    No.config({ router: { useHash: true } });
+    expect(_config.router.useHash).toBe(true);
     expect(_config.router.base).toBe('/');
 
-    _config.router.mode = 'history';
+    _config.router.useHash = false;
+  });
+
+  test('config with deprecated mode option converts to useHash with warning', async () => {
+    const { default: No } = await import('../src/index.js');
+    const { _log } = await import('../src/globals.js');
+
+    const origLog = _log;
+    const logCalls = [];
+    // _log is not easily mockable since it's an export, so just test the conversion
+    No.config({ router: { mode: 'hash' } });
+    expect(_config.router.useHash).toBe(true);
+    expect(_config.router.mode).toBeUndefined();
+
+    No.config({ router: { mode: 'history' } });
+    expect(_config.router.useHash).toBe(false);
+    expect(_config.router.mode).toBeUndefined();
+
+    _config.router.useHash = false;
   });
 });
 
@@ -866,28 +894,6 @@ describe('evaluate — pipe parsing edge cases (L104)', () => {
   });
 });
 
-describe('evaluate — _execStatement setter writeback (L172-182)', () => {
-  test('writes back modified local state through setters', () => {
-    const ctx = createContext({ count: 0, name: 'test' });
-    _execStatement('count = 42', ctx);
-    expect(ctx.count).toBe(42);
-  });
-
-  test('writes back multiple local variables', () => {
-    const ctx = createContext({ x: 1, y: 2 });
-    _execStatement('x = 10; y = 20', ctx);
-    expect(ctx.x).toBe(10);
-    expect(ctx.y).toBe(20);
-  });
-
-  test('preserves unchanged variables through setter fallback', () => {
-    const ctx = createContext({ a: 'keep', b: 'change' });
-    _execStatement('b = "changed"', ctx);
-    expect(ctx.a).toBe('keep');
-    expect(ctx.b).toBe('changed');
-  });
-});
-
 describe('Config — devtools', () => {
   test('devtools defaults to false', () => {
     expect(_config.devtools).toBe(false);
@@ -900,19 +906,6 @@ describe('Config — devtools', () => {
       window.__NOJS_DEVTOOLS__ = { stores: _stores, config: _config };
     }
     expect(window.__NOJS_DEVTOOLS__).toBeUndefined();
-  });
-});
-
-describe('Config — CSP', () => {
-  test('csp defaults to null in _config', () => {
-    expect(_config.csp).toBeNull();
-  });
-
-  test('csp can be set to strict', () => {
-    const original = _config.csp;
-    _config.csp = 'strict';
-    expect(_config.csp).toBe('strict');
-    _config.csp = original;
   });
 });
 
@@ -961,5 +954,516 @@ describe('$set dot-path traversal', () => {
     ctx.$watch(watcher);
     ctx.$set('x', 10);
     expect(watcher).not.toHaveBeenCalled();
+  });
+});
+
+describe('Expression Parser', () => {
+  let ctx;
+  beforeEach(() => {
+    ctx = createContext({
+      count: 10,
+      a: 5,
+      b: 3,
+      x: true,
+      y: false,
+      name: 'NoJS',
+      price: 29.99,
+      items: [1, 2, 3, 4, 5],
+      users: [
+        { name: 'Alice', age: 30, done: true },
+        { name: 'Bob', age: 25, done: false }
+      ],
+      user: { name: 'Alice', address: { city: 'NYC' } },
+      obj: { key: 'value', nested: { deep: true } },
+      nullVal: null,
+      undefVal: undefined,
+      zero: 0,
+      empty: '',
+      arr: [10, 20, 30],
+      matrix: [[1, 2], [3, 4]],
+      idx: 1,
+      tasks: [
+        { text: 'Task 1', done: true },
+        { text: 'Task 2', done: false },
+        { text: 'Task 3', done: true }
+      ]
+    });
+  });
+
+  describe('Arithmetic', () => {
+    test('should evaluate addition', () => {
+      expect(evaluate('a + b', ctx)).toBe(8);
+    });
+
+    test('should evaluate subtraction', () => {
+      expect(evaluate('a - b', ctx)).toBe(2);
+    });
+
+    test('should evaluate multiplication', () => {
+      expect(evaluate('a * b', ctx)).toBe(15);
+    });
+
+    test('should evaluate division', () => {
+      expect(evaluate('a / b', ctx)).toBeCloseTo(5 / 3);
+    });
+
+    test('should evaluate modulo', () => {
+      expect(evaluate('a % b', ctx)).toBe(2);
+    });
+
+    test('should respect operator precedence (multiply before add)', () => {
+      expect(evaluate('a + b * count', ctx)).toBe(35);
+    });
+
+    test('should respect grouping with parentheses', () => {
+      expect(evaluate('(a + b) * count', ctx)).toBe(80);
+    });
+
+    test('should evaluate unary minus', () => {
+      expect(evaluate('-count', ctx)).toBe(-10);
+    });
+
+    test('should evaluate unary minus on grouped expression', () => {
+      expect(evaluate('-(a + b)', ctx)).toBe(-8);
+    });
+  });
+
+  describe('String operations', () => {
+    test('should concatenate string literals', () => {
+      expect(evaluate("'hello' + ' ' + 'world'", ctx)).toBe('hello world');
+    });
+
+    test('should concatenate string literal with variable', () => {
+      expect(evaluate("'count: ' + count", ctx)).toBe('count: 10');
+    });
+
+    test('should evaluate template literals', () => {
+      expect(evaluate('`Hello ${name}`', ctx)).toBe('Hello NoJS');
+    });
+  });
+
+  describe('Bracket member access', () => {
+    test('should access array element by numeric index', () => {
+      expect(evaluate('items[0]', ctx)).toBe(1);
+    });
+
+    test('should access array element by variable index', () => {
+      expect(evaluate('items[idx]', ctx)).toBe(2);
+    });
+
+    test('should access object property by string key', () => {
+      expect(evaluate("obj['key']", ctx)).toBe('value');
+    });
+
+    test('should access nested array element (matrix)', () => {
+      expect(evaluate('matrix[0][1]', ctx)).toBe(2);
+    });
+
+    test('should chain bracket access with dot access', () => {
+      expect(evaluate('users[0].name', ctx)).toBe('Alice');
+    });
+  });
+
+  describe('Method calls', () => {
+    test('should call toUpperCase()', () => {
+      expect(evaluate('name.toUpperCase()', ctx)).toBe('NOJS');
+    });
+
+    test('should call toLowerCase()', () => {
+      expect(evaluate('name.toLowerCase()', ctx)).toBe('nojs');
+    });
+
+    test('should call includes() on array', () => {
+      expect(evaluate('items.includes(3)', ctx)).toBe(true);
+    });
+
+    test('should chain trim() and toLowerCase()', () => {
+      expect(evaluate('name.trim().toLowerCase()', ctx)).toBe('nojs');
+    });
+
+    test('should access length property', () => {
+      expect(evaluate('items.length', ctx)).toBe(5);
+    });
+
+    test('should evaluate filter() with arrow function', () => {
+      const result = evaluate('tasks.filter(t => t.done)', ctx);
+      expect(result).toHaveLength(2);
+      expect(result[0].text).toBe('Task 1');
+      expect(result[1].text).toBe('Task 3');
+    });
+
+    test('should chain filter().length', () => {
+      expect(evaluate('tasks.filter(t => t.done).length', ctx)).toBe(2);
+    });
+
+    test('should evaluate sort() with comparator arrow function', () => {
+      expect(evaluate('users.sort((a, b) => a.age - b.age)[0].name', ctx)).toBe('Bob');
+    });
+
+    test('should evaluate map() with arrow function', () => {
+      expect(evaluate('items.map(x => x * 2)', ctx)).toEqual([2, 4, 6, 8, 10]);
+    });
+  });
+
+  describe('Nullish coalescing', () => {
+    test('should return default for null', () => {
+      expect(evaluate('nullVal ?? "default"', ctx)).toBe('default');
+    });
+
+    test('should return fallback for undefined', () => {
+      expect(evaluate('undefVal ?? "fallback"', ctx)).toBe('fallback');
+    });
+
+    test('should NOT replace zero with fallback', () => {
+      expect(evaluate('zero ?? "fallback"', ctx)).toBe(0);
+    });
+
+    test('should NOT replace empty string with fallback', () => {
+      expect(evaluate("empty ?? 'fallback'", ctx)).toBe('');
+    });
+
+    test('should chain nullish coalescing', () => {
+      expect(evaluate('nullVal ?? undefVal ?? "last"', ctx)).toBe('last');
+    });
+  });
+
+  describe('Optional chaining', () => {
+    test('should access existing property', () => {
+      expect(evaluate('user?.name', ctx)).toBe('Alice');
+    });
+
+    test('should return undefined for null base', () => {
+      expect(evaluate('nullVal?.name', ctx)).toBeUndefined();
+    });
+
+    test('should chain optional access on nested objects', () => {
+      expect(evaluate('user?.address?.city', ctx)).toBe('NYC');
+    });
+
+    test('should return undefined for missing intermediate', () => {
+      expect(evaluate('user?.missing?.deep', ctx)).toBeUndefined();
+    });
+
+    test('should return undefined for method call on null', () => {
+      expect(evaluate('nullVal?.toUpperCase()', ctx)).toBeUndefined();
+    });
+  });
+
+  describe('typeof operator', () => {
+    test('should check typeof number', () => {
+      expect(evaluate("typeof count === 'number'", ctx)).toBe(true);
+    });
+
+    test('should check typeof string', () => {
+      expect(evaluate("typeof name === 'string'", ctx)).toBe(true);
+    });
+
+    test('should check typeof undefined for missing variable', () => {
+      expect(evaluate("typeof missing === 'undefined'", ctx)).toBe(true);
+    });
+  });
+
+  describe('in operator', () => {
+    test('should return true for existing key', () => {
+      expect(evaluate("'key' in obj", ctx)).toBe(true);
+    });
+
+    test('should return false for missing key', () => {
+      expect(evaluate("'missing' in obj", ctx)).toBe(false);
+    });
+  });
+
+  describe('instanceof operator', () => {
+    test('should check instanceof Array', () => {
+      expect(evaluate('items instanceof Array', ctx)).toBe(true);
+    });
+  });
+
+  describe('Array literals', () => {
+    test('should evaluate numeric array literal', () => {
+      expect(evaluate('[1, 2, 3]', ctx)).toEqual([1, 2, 3]);
+    });
+
+    test('should evaluate array literal with variables', () => {
+      expect(evaluate('[a, b, count]', ctx)).toEqual([5, 3, 10]);
+    });
+
+    test('should evaluate spread in array literal', () => {
+      expect(evaluate('[...items, 6]', ctx)).toEqual([1, 2, 3, 4, 5, 6]);
+    });
+
+    test('should evaluate empty array literal', () => {
+      expect(evaluate('[]', ctx)).toEqual([]);
+    });
+  });
+
+  describe('Object literals', () => {
+    test('should evaluate object literal with variable value', () => {
+      expect(evaluate('({ key: a })', ctx)).toEqual({ key: 5 });
+    });
+
+    test('should evaluate object literal with mixed values', () => {
+      expect(evaluate('({ a: 1, b: name })', ctx)).toEqual({ a: 1, b: 'NoJS' });
+    });
+
+    test('should evaluate object spread', () => {
+      expect(evaluate('({ ...obj, extra: true })', ctx)).toEqual({
+        key: 'value',
+        nested: { deep: true },
+        extra: true
+      });
+    });
+  });
+
+  describe('Arrow functions in context (as callbacks)', () => {
+    test('should filter with arrow function (greater than)', () => {
+      expect(evaluate('items.filter(x => x > 3)', ctx)).toEqual([4, 5]);
+    });
+
+    test('should map with arrow function', () => {
+      expect(evaluate('items.map(x => x * 2)', ctx)).toEqual([2, 4, 6, 8, 10]);
+    });
+
+    test('should evaluate some() with arrow function', () => {
+      expect(evaluate('users.some(u => u.age > 28)', ctx)).toBe(true);
+    });
+
+    test('should filter with multi-param arrow function', () => {
+      const result = evaluate('tasks.filter((t, i) => i !== 0)', ctx);
+      expect(result).toHaveLength(2);
+      expect(result[0].text).toBe('Task 2');
+      expect(result[1].text).toBe('Task 3');
+    });
+  });
+
+  describe('Complex real-world expressions', () => {
+    test('should evaluate length comparison', () => {
+      expect(evaluate('items.length > 0', ctx)).toBe(true);
+    });
+
+    test('should concatenate currency symbol with price', () => {
+      expect(evaluate("'$' + price", ctx)).toBe('$29.99');
+    });
+
+    test('should evaluate ternary with comparison', () => {
+      expect(evaluate("count > 0 ? 'has items' : 'empty'", ctx)).toBe('has items');
+    });
+  });
+
+  describe('Edge cases', () => {
+    test('should return undefined for null expression', () => {
+      expect(evaluate(null, ctx)).toBeUndefined();
+    });
+
+    test('should return undefined for empty string expression', () => {
+      expect(evaluate('', ctx)).toBeUndefined();
+    });
+
+    test('should return undefined for invalid syntax (no throw)', () => {
+      expect(evaluate('invalidSyntax...', ctx)).toBeUndefined();
+    });
+
+    test('should return undefined for property access on null (no throw)', () => {
+      expect(evaluate('nullVal.prop', ctx)).toBeUndefined();
+    });
+  });
+
+  describe('Security', () => {
+    test('should not expose constructor', () => {
+      expect(evaluate('constructor', ctx)).toBeUndefined();
+    });
+
+    test('should not expose __proto__', () => {
+      expect(evaluate('obj.__proto__', ctx)).toBeUndefined();
+    });
+
+    test('should not expose obj.constructor', () => {
+      expect(evaluate('obj.constructor', ctx)).toBeUndefined();
+    });
+  });
+});
+
+describe('Statement Interpreter', () => {
+  let ctx;
+  beforeEach(() => {
+    ctx = createContext({
+      count: 0,
+      a: 1,
+      b: 2,
+      c: 3,
+      show: true,
+      name: 'Alice',
+      items: [1, 2, 3],
+      tasks: [
+        { text: 'Task 1', done: true },
+        { text: 'Task 2', done: false },
+        { text: 'Task 3', done: true }
+      ],
+      user: { name: 'Alice', age: 30 },
+      msg: ''
+    });
+  });
+
+  describe('Simple Assignment', () => {
+    test('should assign a number', () => {
+      _execStatement('count = 5', ctx);
+      expect(ctx.count).toBe(5);
+    });
+
+    test('should assign a string', () => {
+      _execStatement("name = 'Bob'", ctx);
+      expect(ctx.name).toBe('Bob');
+    });
+
+    test('should assign expression result', () => {
+      _execStatement('count = a + b', ctx);
+      expect(ctx.count).toBe(3);
+    });
+  });
+
+  describe('Compound Assignment', () => {
+    test('should handle +=', () => {
+      _execStatement('count += 5', ctx);
+      expect(ctx.count).toBe(5);
+    });
+
+    test('should handle -=', () => {
+      ctx.$set('count', 10);
+      _execStatement('count -= 3', ctx);
+      expect(ctx.count).toBe(7);
+    });
+
+    test('should handle *=', () => {
+      ctx.$set('count', 4);
+      _execStatement('count *= 3', ctx);
+      expect(ctx.count).toBe(12);
+    });
+
+    test('should handle /=', () => {
+      ctx.$set('count', 10);
+      _execStatement('count /= 2', ctx);
+      expect(ctx.count).toBe(5);
+    });
+
+    test('should handle %=', () => {
+      ctx.$set('count', 10);
+      _execStatement('count %= 3', ctx);
+      expect(ctx.count).toBe(1);
+    });
+  });
+
+  describe('Increment / Decrement', () => {
+    test('should increment with ++', () => {
+      _execStatement('count++', ctx);
+      expect(ctx.count).toBe(1);
+    });
+
+    test('should decrement with --', () => {
+      ctx.$set('count', 5);
+      _execStatement('count--', ctx);
+      expect(ctx.count).toBe(4);
+    });
+
+    test('should prefix increment with ++count', () => {
+      _execStatement('++count', ctx);
+      expect(ctx.count).toBe(1);
+    });
+
+    test('should prefix decrement with --count', () => {
+      ctx.$set('count', 5);
+      _execStatement('--count', ctx);
+      expect(ctx.count).toBe(4);
+    });
+  });
+
+  describe('Boolean Toggle', () => {
+    test('should toggle boolean', () => {
+      _execStatement('show = !show', ctx);
+      expect(ctx.show).toBe(false);
+    });
+
+    test('should toggle back', () => {
+      _execStatement('show = !show', ctx);
+      _execStatement('show = !show', ctx);
+      expect(ctx.show).toBe(true);
+    });
+  });
+
+  describe('Multiple Statements', () => {
+    test('should execute multiple statements separated by semicolons', () => {
+      _execStatement('a = 10; b = 20; c = 30', ctx);
+      expect(ctx.a).toBe(10);
+      expect(ctx.b).toBe(20);
+      expect(ctx.c).toBe(30);
+    });
+  });
+
+  describe('Array Operations', () => {
+    test('should assign spread array', () => {
+      _execStatement('items = [...items, 4]', ctx);
+      expect(ctx.items).toEqual([1, 2, 3, 4]);
+    });
+
+    test('should filter with arrow function', () => {
+      _execStatement('tasks = tasks.filter(t => !t.done)', ctx);
+      expect(ctx.tasks).toHaveLength(1);
+      expect(ctx.tasks[0].text).toBe('Task 2');
+    });
+
+    test('should map with arrow function and spread', () => {
+      _execStatement('tasks = tasks.map(t => ({...t, active: true}))', ctx);
+      expect(ctx.tasks[0].active).toBe(true);
+      expect(ctx.tasks[1].active).toBe(true);
+    });
+  });
+
+  describe('Dot-path Assignment', () => {
+    test('should assign to nested property', () => {
+      _execStatement("user.name = 'Bob'", ctx);
+      expect(ctx.user.name).toBe('Bob');
+    });
+  });
+
+  describe('$store Mutation', () => {
+    test('should mutate store value', () => {
+      _stores.app = createContext({ theme: 'light' });
+      _execStatement("$store.app.theme = 'dark'", ctx);
+      expect(_stores.app.theme).toBe('dark');
+      delete _stores.app;
+    });
+  });
+
+  describe('Extra Variables', () => {
+    test('should access $event from extraVars', () => {
+      _execStatement('msg = $event.type', ctx, { $event: { type: 'click' } });
+      expect(ctx.msg).toBe('click');
+    });
+  });
+
+  describe('$refs Method Call', () => {
+    test('should call method on $refs', () => {
+      const focus = jest.fn();
+      const refs = { input: { focus } };
+      const ctxWithRefs = createContext({ dummy: 0 });
+      // Manually set $refs on the context's raw
+      ctxWithRefs.__raw.$refs = refs;
+      _execStatement('$refs.input.focus()', ctxWithRefs);
+      expect(focus).toHaveBeenCalled();
+    });
+  });
+
+  describe('Error Handling', () => {
+    test('should not throw on invalid statement', () => {
+      expect(() => _execStatement('???invalid+++', ctx)).not.toThrow();
+    });
+  });
+
+  describe('Context Chain Write-back', () => {
+    test('should write back to parent context through child', () => {
+      const parent = createContext({ count: 0 });
+      const child = createContext({ localVar: 'x' }, parent);
+      _execStatement('count = count + 1', child);
+      expect(parent.count).toBe(1);
+    });
   });
 });

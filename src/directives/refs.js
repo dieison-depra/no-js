@@ -6,13 +6,17 @@ import {
   _refs,
   _stores,
   _notifyStoreWatchers,
+  _emitEvent,
+  _routerInstance,
+  _warn,
   _onDispose,
 } from "../globals.js";
+import { _devtoolsEmit } from "../devtools.js";
 import { createContext } from "../context.js";
 import { evaluate, _execStatement, _interpolate } from "../evaluate.js";
 import { _doFetch } from "../fetch.js";
 import { findContext, _cloneTemplate } from "../dom.js";
-import { registerDirective, processTree } from "../registry.js";
+import { registerDirective, processTree, _disposeChildren } from "../registry.js";
 
 registerDirective("ref", {
   priority: 5,
@@ -60,6 +64,7 @@ registerDirective("use", {
       }
     }
 
+    _disposeChildren(el);
     el.innerHTML = "";
     const wrapper = document.createElement("div");
     wrapper.style.display = "contents";
@@ -75,19 +80,42 @@ registerDirective("call", {
   init(el, name, url) {
     const ctx = findContext(el);
     const method = el.getAttribute("method") || "get";
-    const asKey = el.getAttribute("as");
+    const asKey = el.getAttribute("as") || "data";
     const intoStore = el.getAttribute("into");
     const successTpl = el.getAttribute("success");
     const errorTpl = el.getAttribute("error");
+    const loadingTpl = el.getAttribute("loading");
     const thenExpr = el.getAttribute("then");
     const confirmMsg = el.getAttribute("confirm");
     const bodyAttr = el.getAttribute("body");
+    const redirectPath = el.getAttribute("redirect");
+    const headersAttr = el.getAttribute("headers");
 
-    el.addEventListener("click", async (e) => {
+    const originalChildren = [...el.childNodes].map((n) => n.cloneNode(true));
+    let _activeAbort = null;
+
+    const clickHandler = async (e) => {
       e.preventDefault();
       if (confirmMsg && !window.confirm(confirmMsg)) return;
 
+      // SwitchMap: abort previous in-flight request
+      if (_activeAbort) _activeAbort.abort();
+      _activeAbort = new AbortController();
+
       const resolvedUrl = _interpolate(url, ctx);
+
+      // Show loading template
+      if (loadingTpl) {
+        const clone = _cloneTemplate(loadingTpl);
+        if (clone) {
+          _disposeChildren(el);
+          el.innerHTML = "";
+          el.appendChild(clone);
+          processTree(el);
+          el.disabled = true;
+        }
+      }
+
       try {
         let reqBody = null;
         if (bodyAttr) {
@@ -98,9 +126,28 @@ registerDirective("call", {
             reqBody = interpolated;
           }
         }
-        const data = await _doFetch(resolvedUrl, method, reqBody, {}, el);
+
+        const extraHeaders = headersAttr ? JSON.parse(headersAttr) : {};
+        const data = await _doFetch(
+          resolvedUrl,
+          method,
+          reqBody,
+          extraHeaders,
+          el,
+          _activeAbort.signal,
+        );
+
+        // Restore original children
+        if (loadingTpl) {
+          _disposeChildren(el);
+          el.innerHTML = "";
+          for (const child of originalChildren)
+            el.appendChild(child.cloneNode(true));
+          el.disabled = false;
+        }
+
         if (asKey) ctx.$set(asKey, data);
-        if (asKey && intoStore) {
+        if (intoStore) {
           if (!_stores[intoStore]) _stores[intoStore] = createContext({});
           _stores[intoStore].$set(asKey, data);
           _notifyStoreWatchers();
@@ -123,14 +170,38 @@ registerDirective("call", {
             processTree(wrapper);
           }
         }
+
+        if (redirectPath && _routerInstance)
+          _routerInstance.push(redirectPath);
+
+        _emitEvent("fetch:success", { url: resolvedUrl, data });
+        _devtoolsEmit("fetch:success", { method, url: resolvedUrl });
       } catch (err) {
+        // SwitchMap: silently ignore aborted requests
+        if (err.name === "AbortError") return;
+
+        _warn(`call ${method.toUpperCase()} ${resolvedUrl} failed:`, err.message);
+
+        // Restore original children
+        if (loadingTpl) {
+          _disposeChildren(el);
+          el.innerHTML = "";
+          for (const child of originalChildren)
+            el.appendChild(child.cloneNode(true));
+          el.disabled = false;
+        }
+
+        _emitEvent("fetch:error", { url: resolvedUrl, error: err });
+        _emitEvent("error", { url: resolvedUrl, error: err });
+        _devtoolsEmit("fetch:error", { method, url: resolvedUrl, error: err.message });
+
         if (errorTpl) {
           const clone = _cloneTemplate(errorTpl);
           if (clone) {
             const tplEl = document.getElementById(errorTpl.replace("#", ""));
             const vn = tplEl?.getAttribute("var") || "err";
             const childCtx = createContext(
-              { [vn]: { message: err.message, status: err.status } },
+              { [vn]: { message: err.message, status: err.status, body: err.body } },
               ctx,
             );
             const target = el.parentElement;
@@ -143,6 +214,8 @@ registerDirective("call", {
           }
         }
       }
-    });
+    };
+    el.addEventListener("click", clickHandler);
+    _onDispose(() => el.removeEventListener("click", clickHandler));
   },
 });

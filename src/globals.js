@@ -12,11 +12,10 @@ export const _config = {
   csrf: null,
   cache: { strategy: "none", ttl: 300000 },
   templates: { cache: true },
-  router: { mode: "history", base: "/", scrollBehavior: "top", templates: "pages", ext: ".tpl" },
+  router: { useHash: false, base: "/", scrollBehavior: "top", templates: "pages", ext: ".tpl" },
   i18n: { defaultLocale: "en", fallbackLocale: "en", detectBrowser: false, loadPath: null, ns: [], cache: true, persist: false },
   debug: false,
   devtools: false,
-  csp: null,
   sanitize: true,
 };
 
@@ -63,19 +62,12 @@ export function _notifyStoreWatchers() {
 
 export function _watchExpr(expr, ctx, fn) {
   const unwatch = ctx.$watch(fn);
+  _onDispose(() => {
+    unwatch();
+    _storeWatchers.delete(fn);
+  });
   if (typeof expr === "string" && expr.includes("$store")) {
     _storeWatchers.add(fn);
-  }
-  // Ensure cleanup when the owning element is disposed.
-  // _disposeElement only clears el.__ctx.__listeners, so watchers registered
-  // on an ancestor context (via findContext) would otherwise leak — their
-  // closures keep el alive and block GC until the next notify cycle.
-  if (_currentEl) {
-    _currentEl.__disposers = _currentEl.__disposers || [];
-    _currentEl.__disposers.push(() => {
-      if (unwatch) unwatch();        // remove from ctx.__listeners (ancestor or own)
-      _storeWatchers.delete(fn);     // remove from global store watcher set
-    });
   }
 }
 

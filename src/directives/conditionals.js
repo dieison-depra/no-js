@@ -5,7 +5,7 @@
 import { _watchExpr } from "../globals.js";
 import { evaluate } from "../evaluate.js";
 import { findContext, _clearDeclared, _cloneTemplate } from "../dom.js";
-import { registerDirective, processTree, _disposeTree } from "../registry.js";
+import { registerDirective, processTree, _disposeChildren } from "../registry.js";
 import { _animateIn, _animateOut } from "../animations.js";
 
 registerDirective("if", {
@@ -36,16 +36,15 @@ registerDirective("if", {
     }
 
     function render(result) {
+      _disposeChildren(el);
       if (result) {
         if (thenId) {
           const clone = _cloneTemplate(thenId);
           if (clone) {
-            for (const child of [...el.children]) _disposeTree(child);
             el.innerHTML = "";
             el.appendChild(clone);
           }
         } else {
-          for (const child of [...el.children]) _disposeTree(child);
           el.innerHTML = "";
           for (const child of originalChildren)
             el.appendChild(child.cloneNode(true));
@@ -54,15 +53,10 @@ registerDirective("if", {
         if (elseId) {
           const clone = _cloneTemplate(elseId);
           if (clone) {
-            for (const child of [...el.children]) _disposeTree(child);
             el.innerHTML = "";
             el.appendChild(clone);
           }
-        } else if (thenId) {
-          for (const child of [...el.children]) _disposeTree(child);
-          el.innerHTML = "";
         } else {
-          for (const child of [...el.children]) _disposeTree(child);
           el.innerHTML = "";
         }
       }
@@ -97,6 +91,7 @@ registerDirective("else-if", {
           prev.getAttribute("if") || prev.getAttribute("else-if");
         if (prevExpr) {
           if (evaluate(prevExpr, ctx)) {
+            _disposeChildren(el);
             el.innerHTML = "";
             el.style.display = "none";
             return;
@@ -111,10 +106,12 @@ registerDirective("else-if", {
         if (thenId) {
           const clone = _cloneTemplate(thenId);
           if (clone) {
+            _disposeChildren(el);
             el.innerHTML = "";
             el.appendChild(clone);
           }
         } else {
+          _disposeChildren(el);
           el.innerHTML = "";
           for (const child of originalChildren)
             el.appendChild(child.cloneNode(true));
@@ -122,6 +119,7 @@ registerDirective("else-if", {
         _clearDeclared(el);
         processTree(el);
       } else {
+        _disposeChildren(el);
         el.innerHTML = "";
       }
     }
@@ -147,6 +145,7 @@ registerDirective("else", {
           prev.getAttribute("if") || prev.getAttribute("else-if");
         if (prevExpr) {
           if (evaluate(prevExpr, ctx)) {
+            _disposeChildren(el);
             el.innerHTML = "";
             el.style.display = "none";
             return;
@@ -160,10 +159,12 @@ registerDirective("else", {
       if (thenId) {
         const clone = _cloneTemplate(thenId);
         if (clone) {
+          _disposeChildren(el);
           el.innerHTML = "";
           el.appendChild(clone);
         }
       } else {
+        _disposeChildren(el);
         el.innerHTML = "";
         for (const child of originalChildren)
           el.appendChild(child.cloneNode(true));
@@ -263,6 +264,7 @@ registerDirective("switch", {
             if (thenTpl) {
               const clone = _cloneTemplate(thenTpl);
               if (clone) {
+                _disposeChildren(child);
                 child.innerHTML = "";
                 child.appendChild(clone);
               }
@@ -277,6 +279,7 @@ registerDirective("switch", {
           if (!matched && thenTpl) {
             const clone = _cloneTemplate(thenTpl);
             if (clone) {
+              _disposeChildren(child);
               child.innerHTML = "";
               child.appendChild(clone);
             }

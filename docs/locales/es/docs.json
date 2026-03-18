@@ -9,13 +9,13 @@
       "introduction": {
         "title": "Introducción",
         "text": "No.JS es un framework reactivo HTML-first. Construye aplicaciones web dinámicas y basadas en datos usando únicamente atributos HTML — sin paso de compilación, sin DOM virtual, sin JSX.",
-        "callout": "~20KB gzipped · Cero dependencias · Funciona en todos los navegadores modernos · Sin paso de compilación"
+        "callout": "~24KB gzipped · Cero dependencias · Funciona en todos los navegadores modernos · Sin paso de compilación"
       },
       "installation": {
         "title": "Instalación",
         "cdnSubtitle": "CDN (recomendado)",
         "selfHostedSubtitle": "Auto-alojado",
-        "selfHostedText": "Descarga dist/iife/no.js e inclúyelo con una etiqueta <script>. Es un solo archivo, ~20 KB gzipped."
+        "selfHostedText": "Descarga dist/iife/no.js e inclúyelo con una etiqueta <script>. Es un solo archivo, ~24 KB gzipped."
       },
       "quickStart": {
         "title": "Inicio Rápido",
@@ -184,7 +184,9 @@
         "lazyOnDemand": "Obtener plantilla de ruta solo en la primera visita (solo plantillas de ruta)",
         "routerForward": "Navegar hacia adelante en el historial",
         "routerOn": "Suscribirse a cambios de ruta",
+        "routeWildcard": "Ruta wildcard catch-all 404",
         "routerCurrent": "Objeto de ruta actual",
+        "routeMatched": "<code>true</code> si una ruta explícita coincidió, <code>false</code> para wildcard/fallback",
         "i18nNs": "Auto-derivar namespace i18n del nombre de archivo de ruta",
         "routeViewSrc": "Outlet de enrutamiento basado en archivos",
         "routeIndex": "Nombre de archivo para la raíz <code>/</code> (por defecto <code>\"index\"</code>)",
@@ -300,6 +302,11 @@
       "persistence": {
         "title": "Persistencia de Estado",
         "text": "Persiste el estado entre recargas de página usando localStorage o sessionStorage."
+      },
+      "notify": {
+        "title": "NoJS.notify() — Actualizar Store",
+        "text": "Cuando JavaScript externo muta una store vía NoJS.store, llame a NoJS.notify() para actualizar todos los bindings del DOM.",
+        "callout": "Solo es necesario al mutar NoJS.store desde JavaScript puro — fuera de expresiones HTML. Las mutaciones dentro de on:click o bind se manejan automáticamente."
       }
     },
     "dataBinding": {
@@ -592,7 +599,8 @@
         "path": "Ruta actual (ej. \"/users/42\")",
         "params": "Parámetros de ruta (ej. { id: \"42\" })",
         "query": "Parámetros de cadena de consulta (ej. { q: \"hello\" })",
-        "hash": "Hash de la URL (ej. \"#section\")"
+        "hash": "Hash de la URL (ej. \"#section\")",
+        "matched": "Si una ruta explícita coincidió (true) o si se está renderizando un wildcard/fallback (false)"
       },
       "activeStyle": {
         "title": "Estilo de Ruta Activa"
@@ -651,8 +659,8 @@
         "ondemandDesc": "Solo válido en plantillas de ruta. Nunca se precarga — se obtiene la primera vez que el usuario navega a esa ruta. Ideal para páginas pesadas o raramente visitadas."
       },
       "anchor": {
-        "title": "Enlaces Ancla en Modo Hash",
-        "text1": "Al usar mode: 'hash', el hash de la URL (#) se usa para el enrutamiento (ej. #/docs). Esto normalmente entra en conflicto con los enlaces ancla estándar como <a href=\"#section\"> — pero No.JS lo maneja automáticamente.",
+        "title": "Enlaces Ancla",
+        "text1": "Al usar useHash: true, el hash de la URL (#) se usa para el enrutamiento (ej. #/docs). Esto normalmente entra en conflicto con los enlaces ancla estándar como <a href=\"#section\"> — pero No.JS lo maneja automáticamente en ambos modos (hash e history).",
         "text2": "Los enlaces ancla que apuntan a un id de elemento en la página son interceptados por el enrutador: el elemento destino se desplaza a la vista suavemente, y el enlace clickeado recibe una clase active. La ruta en sí no se ve afectada.",
         "howItWorks": "Cómo funciona:",
         "list1": "Al hacer clic en <a href=\"#introduction\"> se desplaza a <div id=\"introduction\"> con comportamiento suave",
@@ -665,6 +673,29 @@
         "title": "Salidas Nombradas (route-view)",
         "text": "Múltiples salidas route-view pueden coexistir en la misma página. Dale a cada salida un nombre mediante el valor del atributo, y apunta las plantillas de ruta a salidas específicas usando el atributo outlet.",
         "callout": "Las salidas sin plantilla coincidente para la ruta actual siempre se limpian al navegar."
+      },
+      "catchAll": {
+        "title": "404 / Rutas Catch-All",
+        "text": "Usa <code>route=\"*\"</code> para definir una plantilla <strong>wildcard catch-all</strong> que se renderiza cuando ninguna ruta explícita coincide con la ruta actual. El wildcard siempre se evalúa al final, sin importar el orden en el DOM.",
+        "text2": "Las rutas explícitas <strong>siempre tienen prioridad</strong> — el wildcard solo se activa cuando <code>matchRoute()</code> no encuentra coincidencia.",
+        "fallbackTitle": "Fallback 404 Automático",
+        "fallbackText": "Si no defines una plantilla <code>route=\"*\"</code>, No.JS muestra automáticamente una página 404 mínima integrada cuando ninguna ruta coincide. Esto asegura que los usuarios siempre vean algo significativo en lugar de una salida vacía.",
+        "fallbackTip": "El fallback integrado es intencionalmente mínimo y sin estilos. Define tu propia plantilla <code>route=\"*\"</code> para aplicaciones en producción.",
+        "namedTitle": "Wildcards en Salidas Nombradas",
+        "namedText": "Cada salida nombrada puede tener su propio fallback wildcard. Cuando ninguna ruta coincide para una salida, el framework resuelve los fallbacks en este orden:",
+        "namedList1": "<strong>Wildcard local</strong> — <code>&lt;template route=\"*\" outlet=\"{name}\"&gt;</code> para esa salida específica",
+        "namedList2": "<strong>Wildcard global</strong> — <code>&lt;template route=\"*\"&gt;</code> (el wildcard de la salida por defecto), usado solo para salidas no predeterminadas",
+        "namedList3": "<strong>404 integrado</strong> — la página de fallback mínima del framework",
+        "namedText2": "Si la barra lateral no tiene wildcard local, recurre al <code>route=\"*\"</code> global. Si ninguno existe, se usa el 404 integrado.",
+        "matchedTitle": "$route.matched",
+        "matchedText": "El booleano <code>$route.matched</code> te indica si la ruta actual encontró una ruta explícita (<code>true</code>) o un wildcard/fallback (<code>false</code>). Úsalo para renderizado condicional dentro de tus plantillas:",
+        "matchedText2": "<code>$route.matched</code> se establece <strong>antes</strong> de que la plantilla se renderice, por lo que siempre está disponible durante el procesamiento.",
+        "remoteTitle": "Plantilla 404 Remota",
+        "remoteText": "Las rutas wildcard soportan todos los mismos atributos que las plantillas de ruta regulares, incluyendo <code>src</code> para carga remota:",
+        "remoteText2": "La plantilla remota se obtiene, almacena en caché y renderiza igual que cualquier otra plantilla de ruta — y tiene acceso completo a <code>$route.path</code>, <code>$route.matched</code>, y todas las demás funcionalidades del framework.",
+        "fileBasedTitle": "404 en Enrutamiento Basado en Archivos",
+        "fileBasedText": "Al usar enrutamiento basado en archivos, navegar a una ruta cuyo archivo <code>.tpl</code> no existe en el servidor (HTTP 404 u otro error) activa automáticamente la cadena de fallback wildcard.",
+        "fileBasedText2": "La respuesta HTTP fallida <strong>no</strong> se almacena en caché — las navegaciones posteriores a otras rutas no se ven afectadas."
       }
     },
     "formsValidation": {
@@ -1125,9 +1156,6 @@
         "devtoolsTitle": "devtools",
         "devtoolsType": "Tipo: boolean | Por defecto: false",
         "devtoolsText": "Habilita el panel de devtools de No.JS, accesible vía window.__NOJS_DEVTOOLS__. Cuando está activo, expone el estado reactivo, las directivas registradas, las rutas activas y los árboles de componentes para inspección en la consola del navegador.",
-        "cspTitle": "csp",
-        "cspType": "Tipo: string | null | Por defecto: null",
-        "cspText": "Establece 'strict' para deshabilitar el uso de new Function() en la evaluación de expresiones. Esto es necesario para entornos con una Content Security Policy que bloquea unsafe-eval. En modo estricto, las expresiones se limitan a acceso de propiedades por dot-path y comparaciones simples — no se permite JavaScript arbitrario.",
         "templatesCacheTitle": "templates.cache",
         "templatesCacheType": "Tipo: boolean | Por defecto: true",
         "templatesCacheText1": "Controla si el contenido HTML de archivos .tpl obtenidos remotamente se almacena en un Map en memoria después de la primera solicitud. En navegaciones repetidas a la misma ruta, se usa directamente el HTML en caché y no se realiza ninguna solicitud HTTP. La caché vive durante la sesión de la página (sin TTL — los assets de plantillas son estáticos).",
@@ -1157,11 +1185,10 @@
         "xssTitle": "Protección XSS",
         "xssList1": "bind siempre establece textContent, nunca innerHTML — seguro por defecto.",
         "xssList2": "bind-html sanitiza el contenido usando un sanitizador integrado basado en regex (elimina etiquetas <script>, bloquea manejadores de eventos on*, elimina URIs javascript:).",
-        "xssList3": "Las expresiones de plantilla se evalúan en un ámbito Function() aislado — sin acceso a window, document ni globales a menos que se expongan explícitamente.",
+        "xssList3": "Las expresiones de plantilla se evalúan mediante un parser sandboxed personalizado — no se usa eval() ni Function(), y las propiedades peligrosas como __proto__ y constructor están bloqueadas.",
         "csrfTitle": "Protección CSRF",
         "cspSecTitle": "Content Security Policy",
-        "cspSecText1": "No.JS usa new Function() para la evaluación de expresiones. Si tu CSP bloquea unsafe-eval, usa el modo precompilado:",
-        "cspSecText2": "En modo estricto, las expresiones se limitan a acceso por dot-path y comparaciones simples (sin JS arbitrario)."
+        "cspSecText1": "No.JS utiliza un parser de expresiones personalizado totalmente compatible con CSP — no se usa eval() ni el constructor Function(). No se requiere la directiva unsafe-eval en tu Content Security Policy."
       }
     }
   }

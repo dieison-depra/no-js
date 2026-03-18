@@ -40,14 +40,14 @@
 
     <span class="hl-cmt">// Router</span>
     <span class="hl-attr">router</span>: {
-      <span class="hl-attr">mode</span>: <span class="hl-str">'history'</span>,        <span class="hl-cmt">// 'history' (default) | 'hash'</span>
+      <span class="hl-attr">useHash</span>: <span class="hl-kw">false</span>,          <span class="hl-cmt">// true = hash mode, false = history mode (default)</span>
       <span class="hl-attr">base</span>: <span class="hl-str">'/'</span>,
       <span class="hl-attr">scrollBehavior</span>: <span class="hl-str">'top'</span>,  <span class="hl-cmt">// 'top' | 'preserve' | 'smooth'</span>
       <span class="hl-attr">templates</span>: <span class="hl-str">'pages'</span>,      <span class="hl-cmt">// Default base path for file-based routing</span>
       <span class="hl-attr">ext</span>: <span class="hl-str">'.tpl'</span>               <span class="hl-cmt">// Default file extension (fallback: '.html')</span>
     },
-    <span class="hl-cmt">// In hash mode, standard anchor links (href="#id")</span>
-    <span class="hl-cmt">// are automatically intercepted — they scroll to the</span>
+    <span class="hl-cmt">// Anchor links (href="#id") are automatically</span>
+    <span class="hl-cmt">// intercepted in both modes — they scroll to the</span>
     <span class="hl-cmt">// target element without triggering route navigation.</span>
 
     <span class="hl-cmt">// i18n</span>
@@ -66,7 +66,6 @@
 
     <span class="hl-cmt">// Security</span>
     <span class="hl-attr">sanitize</span>: <span class="hl-kw">true</span>,            <span class="hl-cmt">// Sanitize bind-html</span>
-    <span class="hl-attr">csp</span>: <span class="hl-str">'strict'</span>              <span class="hl-cmt">// Restrict expressions for CSP compliance</span>
   });
 <span class="hl-tag">&lt;/script&gt;</span></pre></div>
   </div>
@@ -102,10 +101,6 @@
 <span class="hl-cmt">// window.__NOJS_DEVTOOLS__.state</span>
 <span class="hl-cmt">// window.__NOJS_DEVTOOLS__.routes</span></pre></div>
 
-    <h3 class="doc-title" t="docs.configuration.configOptions.cspTitle"></h3>
-    <p class="doc-text" t="docs.configuration.configOptions.cspType"></p>
-    <p class="doc-text" t="docs.configuration.configOptions.cspText"></p>
-    <div class="code-block"><pre><span class="hl-fn">NoJS</span>.<span class="hl-fn">config</span>({ <span class="hl-attr">csp</span>: <span class="hl-str">'strict'</span> }); <span class="hl-cmt">// Safe for strict CSP environments</span></pre></div>
     <h3 class="doc-title" t="docs.configuration.configOptions.templatesCacheTitle"></h3>
     <p class="doc-text" t="docs.configuration.configOptions.templatesCacheType"></p>
     <p class="doc-text" t="docs.configuration.configOptions.templatesCacheText1"></p>
@@ -203,8 +198,6 @@ console.<span class="hl-fn">log</span>(<span class="hl-fn">NoJS</span>.baseApiUr
 
     <h3 class="doc-title" t="docs.configuration.security.cspSecTitle"></h3>
     <p class="doc-text" t="docs.configuration.security.cspSecText1"></p>
-    <div class="code-block"><pre><span class="hl-tag">&lt;script</span> <span class="hl-attr">src</span>=<span class="hl-str">"dist/iife/no.js"</span> <span class="hl-attr">data-csp</span>=<span class="hl-str">"strict"</span><span class="hl-tag">&gt;&lt;/script&gt;</span></pre></div>
-    <p class="doc-text" t="docs.configuration.security.cspSecText2"></p>
   </div>
 
 </div>

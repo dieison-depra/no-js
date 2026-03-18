@@ -5,6 +5,97 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0](https://github.com/ErickXavier/no-js/compare/v1.8.2...v1.9.0) — 2026-03-17
+
+### Added
+
+- Custom recursive-descent expression parser — replaces all `new Function()` calls for full CSP compliance
+- Statement interpreter with assignment, compound operators (`+=`, `-=`, `*=`, `/=`, `%=`), prefix/postfix `++`/`--`
+- Deny-list (`_DENY_GLOBALS`) blocks `eval`, `Function`, `process`, `require`, `importScripts` from globalThis fallback
+- Forbidden property checks on `__proto__`, `constructor`, `prototype` in object expressions and member access
+- Arrow function rest parameters support in expression evaluator
+- 24 new unit tests for statement interpreter
+
+### Changed
+
+- Expression evaluation no longer uses `new Function()` — zero `unsafe-eval` CSP requirement
+- `csp` config option deprecated (no longer needed — framework is CSP-compliant by default)
+- Documentation updated across 5 locales (en, es, pt, fr, it) reflecting CSP-by-default
+- Landing page hero fills viewport height; responsive fixes for 768px and new 480px breakpoint
+
+### Removed
+
+- `csp` option from `NoJS.config()` (shows deprecation warning if used)
+
+## [1.8.2](https://github.com/ErickXavier/no-js/compare/v1.8.1...v1.8.2) — 2026-03-17
+
+### Fixed
+
+- Fix memory leaks across 10 directive files: dispose child contexts before `innerHTML = ""` ([#4](https://github.com/ErickXavier/no-js/issues/4))
+- Fix `_watchExpr` in `globals.js`: capture `$watch` unsubscribe and register via `_onDispose` so ancestor-context watchers are cleaned on element disposal ([#4](https://github.com/ErickXavier/no-js/issues/4))
+- Fix `on:*` and `trigger` event listeners leaking on re-render: register `removeEventListener` via `_onDispose` ([#4](https://github.com/ErickXavier/no-js/issues/4))
+- Fix `bind-*`, `model`, `call`, `drag`, `drag-list` listener/watcher leaks via `_onDispose` cleanup ([#4](https://github.com/ErickXavier/no-js/issues/4))
+
+### Added
+
+- `_disposeChildren(parent)` utility in `registry.js` for safe child disposal before `innerHTML` clear
+- 27 new unit tests for disposal behavior across `registry`, `core`, `directives-core`, and `directives-data`
+
+### Changed
+
+- Remove 86 disposable unit tests (duplicates, no-assertion, trivially obvious) identified by QA audit
+- Remove landing page E2E tests (docs site tests moved out of scope)
+- Remove NPM/ESM install references from documentation (CDN-only distribution)
+
+## [1.8.1](https://github.com/ErickXavier/no-js/compare/v1.8.0...v1.8.1) — 2026-03-17
+
+### Changed
+
+- Redesign landing page v8 with new hero, feature grid, and community sections
+- Update all 5 locales (en/es/pt/fr/it) with new landing page translation keys
+- Change language switcher from `<a>` to `<button>` for accessibility
+- Update README with npm install instructions, `notify()`, drag & drop, and wildcard routes
+- Update agent definitions with codebase-first workflow step
+
+### Added
+
+- CONTRIBUTING.md with contribution guidelines
+- GitHub issue template for bug reports (`bug_report.yml`)
+- Firefox and WebKit browsers to Playwright E2E config
+- Landing page E2E tests
+
+## [1.8.0](https://github.com/ErickXavier/no-js/compare/v1.7.0...v1.8.0) — 2026-03-16
+
+### Added
+
+- `NoJS.notify()` public API to flush store watchers after external JS mutations to `NoJS.store` ([`5317c83`](https://github.com/ErickXavier/no-js/commit/5317c83))
+- Documentation for `NoJS.notify()` with interceptor and cart examples ([`5317c83`](https://github.com/ErickXavier/no-js/commit/5317c83))
+- `route="*"` wildcard catch-all route support with built-in 404 fallback ([`1fe73b0`](https://github.com/ErickXavier/no-js/commit/1fe73b0))
+- `$route.matched` boolean for matched/unmatched route detection ([`1fe73b0`](https://github.com/ErickXavier/no-js/commit/1fe73b0))
+- Guard and redirect attributes on wildcard route templates ([`1fe73b0`](https://github.com/ErickXavier/no-js/commit/1fe73b0))
+- Graceful handling of failed template loads with `__loadFailed` flag ([`1fe73b0`](https://github.com/ErickXavier/no-js/commit/1fe73b0))
+- Call directive: loading template support with element disable during request ([`1f5517e`](https://github.com/ErickXavier/no-js/commit/1f5517e))
+- Call directive: AbortController switchMap — abort previous in-flight on re-click ([`1f5517e`](https://github.com/ErickXavier/no-js/commit/1f5517e))
+- Call directive: custom headers attribute support ([`1f5517e`](https://github.com/ErickXavier/no-js/commit/1f5517e))
+- Call directive: redirect attribute for SPA navigation on success ([`1f5517e`](https://github.com/ErickXavier/no-js/commit/1f5517e))
+- Call directive: `fetch:success` / `fetch:error` events and devtools bridge integration ([`1f5517e`](https://github.com/ErickXavier/no-js/commit/1f5517e))
+- Call directive: default `as` to `"data"` when not specified ([`1f5517e`](https://github.com/ErickXavier/no-js/commit/1f5517e))
+- Call directive: error body included in error template context ([`1f5517e`](https://github.com/ErickXavier/no-js/commit/1f5517e))
+- GitHub Copilot agent definitions and project instructions ([`37d5136`](https://github.com/ErickXavier/no-js/commit/37d5136))
+
+### Changed
+
+- Router: migrate from `mode:"history"/"hash"` to `useHash` boolean API (default `false`) ([`c102df3`](https://github.com/ErickXavier/no-js/commit/c102df3))
+- Router: backward-compat shim for `mode:"hash"` → `useHash:true` with deprecation warning ([`c102df3`](https://github.com/ErickXavier/no-js/commit/c102df3))
+- Router: fix base stripping with anchored regex via `_stripBase()` helper ([`c102df3`](https://github.com/ErickXavier/no-js/commit/c102df3))
+- Router: fix anchor link scroll in history mode (now intercepts in both modes) ([`c102df3`](https://github.com/ErickXavier/no-js/commit/c102df3))
+- Router: add popstate same-path guard to prevent re-render on hash-only changes ([`c102df3`](https://github.com/ErickXavier/no-js/commit/c102df3))
+- Router: skip wildcard routes during prefetch ([`1fe73b0`](https://github.com/ErickXavier/no-js/commit/1fe73b0))
+
+### Fixed
+
+- E2E form validation tests (8, 13, 14, 16) now interact with fields before asserting errors, matching pristine-aware validation ([`5317c83`](https://github.com/ErickXavier/no-js/commit/5317c83))
+
 ## [1.7.0](https://github.com/ErickXavier/no-js/compare/v1.6.1...v1.7.0) — 2026-03-13
 
 ### Added

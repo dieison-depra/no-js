@@ -212,7 +212,7 @@ input, select, textarea { font: inherit; }
 .lang-dropdown-menu::backdrop {
   background: transparent;
 }
-.lang-dropdown-menu a {
+.lang-dropdown-menu button {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -224,11 +224,15 @@ input, select, textarea { font: inherit; }
   cursor: pointer;
   text-decoration: none;
   transition: background 0.15s;
+  background: none;
+  border: none;
+  width: 100%;
+  font-family: inherit;
 }
-.lang-dropdown-menu a:hover {
+.lang-dropdown-menu button:hover {
   background: var(--primary-surface);
 }
-.lang-dropdown-menu a.active {
+.lang-dropdown-menu button.active {
   color: var(--primary);
   background: var(--primary-surface);
   font-weight: 600;
@@ -351,7 +355,7 @@ input, select, textarea { font: inherit; }
   grid-template-columns: repeat(3, 1fr);
   gap: 4px;
 }
-.mobile-nav-lang a {
+.mobile-nav-lang button {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -363,11 +367,14 @@ input, select, textarea { font: inherit; }
   cursor: pointer;
   text-decoration: none;
   transition: background 0.15s;
+  background: none;
+  border: none;
+  font-family: inherit;
 }
-.mobile-nav-lang a:hover {
+.mobile-nav-lang button:hover {
   background: var(--primary-surface);
 }
-.mobile-nav-lang a.active {
+.mobile-nav-lang button.active {
   color: var(--primary);
   background: var(--primary-surface);
   font-weight: 600;
@@ -755,7 +762,48 @@ code {
   color: var(--primary);
 }
 
+/* ── Default button (unstyled <button> elements in docs) ── */
+button:not([class]) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--primary);
+  color: var(--white);
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+button:not([class]):hover {
+  background: var(--primary-dark);
+}
+button:not([class]):active {
+  transform: scale(0.97);
+}
+button:not([class]):disabled {
+  background: var(--text-dim);
+  color: var(--surface-alt);
+  cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+}
 
+/* ── Disabled state for .btn variants ── */
+.btn:disabled,
+.btn[disabled] {
+  background: var(--text-dim);
+  color: var(--surface-alt);
+  border-color: transparent;
+  cursor: not-allowed;
+  opacity: 0.7;
+  pointer-events: none;
+}
 
 
 /* ══════════════════════════════════════════════════════════════════
