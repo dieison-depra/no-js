@@ -374,6 +374,7 @@ registerDirective("foreach", {
       // Clear it so only managed wrappers appear as children.
       if (keyMap.size === 0) el.innerHTML = "";
 
+
       const newOrder = list.map((item, i) => {
         const tempCtx = createContext({ [itemName]: item, [indexName]: i }, ctx);
         return { key: evaluate(keyExpr, tempCtx), item, i };
