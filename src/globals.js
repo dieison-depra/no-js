@@ -80,6 +80,7 @@ export function _watchExpr(expr, ctx, fn) {
         }
       });
       ro.observe(el.parentElement, { childList: true, subtree: true });
+      _onDispose(() => ro.disconnect());
     }
   }
 }
