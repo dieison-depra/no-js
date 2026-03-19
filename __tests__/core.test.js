@@ -260,6 +260,7 @@ describe('Globals', () => {
       expect(_storeWatchers.has(fn)).toBe(false);
     });
 
+
     test('does not throw when element has no parentElement', () => {
       const ctx = createContext({});
       const fn = jest.fn();
