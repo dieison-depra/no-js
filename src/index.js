@@ -143,6 +143,9 @@ const NoJS = {
       const n = parseInt(opts.exprCacheSize);
       opts.exprCacheSize = (Number.isFinite(n) && n > 0) ? n : 500;
     }
+    if (opts.sanitize === false) {
+      _warn("sanitize: false disables built-in HTML sanitization. Ensure all external content passed to bind-html is manually sanitized.");
+    }
     Object.assign(_config, opts);
     if (opts.sanitize === false) {
       _warn('sanitize:false is deprecated — use dangerouslyDisableSanitize:true to make the risk explicit.');
