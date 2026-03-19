@@ -31,12 +31,15 @@ registerDirective("bind-html", {
         el
       );
     }
+    let _lastVal;
     function update() {
       const val = evaluate(expr, ctx);
-      if (val != null) {
-        _disposeChildren(el);
-        el.innerHTML = _sanitizeHtml(String(val));
-      }
+      if (val == null) return;
+      const str = String(val);
+      if (str === _lastVal) return;
+      _lastVal = str;
+      _disposeChildren(el);
+      el.innerHTML = _sanitizeHtml(str);
     }
     _watchExpr(expr, ctx, update);
     update();
