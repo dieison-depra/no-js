@@ -210,6 +210,44 @@ describe('Globals', () => {
 
       expect(_storeWatchers.has(fn)).toBe(false);
     });
+
+    test('removes $store watcher from Set when element is removed without dispose', async () => {
+      const ctx = createContext({});
+      const fn = jest.fn();
+
+      const parent = document.createElement('div');
+      const el = document.createElement('span');
+      parent.appendChild(el);
+      document.body.appendChild(parent);
+
+      _setCurrentEl(el);
+      _watchExpr('$store.cart', ctx, fn);
+      _setCurrentEl(null);
+
+      expect(_storeWatchers.has(fn)).toBe(true);
+
+      // Remove element externally (bypassing framework dispose)
+      parent.innerHTML = '';
+
+      // Allow MutationObserver microtask to run
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(_storeWatchers.has(fn)).toBe(false);
+    });
+
+    test('does not throw when element has no parentElement', () => {
+      const ctx = createContext({});
+      const fn = jest.fn();
+
+      // Element with no parent
+      const el = document.createElement('div');
+
+      _setCurrentEl(el);
+      expect(() => _watchExpr('$store.x', ctx, fn)).not.toThrow();
+      _setCurrentEl(null);
+
+      _storeWatchers.delete(fn);
+    });
   });
 });
 
