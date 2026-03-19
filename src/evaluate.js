@@ -6,8 +6,21 @@ import { _stores, _routerInstance, _filters, _warn, _notifyStoreWatchers } from 
 import { _i18n } from "./i18n.js";
 import { _collectKeys } from "./context.js";
 
-const _exprCache = new Map();
-const _stmtCache = new Map();
+const _CACHE_MAX = 500;
+function _makeCache() {
+  const map = new Map();
+  return {
+    get(k) { return map.get(k); },
+    has(k) { return map.has(k); },
+    set(k, v) {
+      if (map.size >= _CACHE_MAX) map.delete(map.keys().next().value);
+      map.set(k, v);
+    },
+    get size() { return map.size; },
+  };
+}
+export const _exprCache = _makeCache();
+export const _stmtCache = _makeCache();
 
 // ── Tokenizer ──────────────────────────────────────────────────────────
 
