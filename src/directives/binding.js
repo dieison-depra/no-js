@@ -24,9 +24,14 @@ registerDirective("bind-html", {
   priority: 20,
   init(el, name, expr) {
     const ctx = findContext(el);
+    let _lastVal;
     function update() {
       const val = evaluate(expr, ctx);
-      if (val != null) el.innerHTML = _sanitizeHtml(String(val));
+      if (val == null) return;
+      const str = String(val);
+      if (str === _lastVal) return;
+      _lastVal = str;
+      el.innerHTML = _sanitizeHtml(str);
     }
     _watchExpr(expr, ctx, update);
     update();

@@ -235,6 +235,38 @@ describe('Bind-HTML Directive', () => {
     expect(div.innerHTML).not.toContain('<script');
     expect(div.innerHTML).toContain('<p>safe</p>');
   });
+
+  test('skips DOM write when value has not changed', () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{ content: "<b>Hello</b>", other: 0 }');
+    const div = document.createElement('div');
+    div.setAttribute('bind-html', 'content');
+    parent.appendChild(div);
+    document.body.appendChild(parent);
+    processTree(parent);
+
+    const ctx = findContext(parent);
+
+    let writeCount = 0;
+    const descriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+    Object.defineProperty(div, 'innerHTML', {
+      set(v) { writeCount++; descriptor.set.call(this, v); },
+      get() { return descriptor.get.call(this); },
+      configurable: true,
+    });
+
+    // Trigger a state change that does NOT affect content
+    ctx.other = 1;
+    expect(writeCount).toBe(0);
+
+    // Trigger a state change that DOES affect content
+    ctx.content = '<b>World</b>';
+    expect(writeCount).toBe(1);
+
+    // Same value again — no extra write
+    ctx.content = '<b>World</b>';
+    expect(writeCount).toBe(1);
+  });
 });
 
 describe('Bind-* Directive', () => {
