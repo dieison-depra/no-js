@@ -424,6 +424,32 @@ describe('Reactive Context', () => {
       const { vals } = _collectKeys(child);
       expect(vals.x).toBe('child');
     });
+
+    test('returns cached result when context has not changed', () => {
+      const ctx = createContext({ a: 1 });
+      const first = _collectKeys(ctx);
+      const second = _collectKeys(ctx);
+      expect(second).toBe(first); // same object reference — cache hit
+    });
+
+    test('returns fresh result after context mutation', () => {
+      const ctx = createContext({ a: 1 });
+      const before = _collectKeys(ctx);
+      ctx.a = 99;
+      const after = _collectKeys(ctx);
+      expect(after).not.toBe(before); // different object reference — cache invalidated
+      expect(after.vals.a).toBe(99);
+    });
+
+    test('invalidates child cache when parent context changes', () => {
+      const parent = createContext({ x: 1 });
+      const child = createContext({ y: 2 }, parent);
+      const before = _collectKeys(child);
+      parent.x = 42;
+      const after = _collectKeys(child);
+      expect(after).not.toBe(before);
+      expect(after.vals.x).toBe(42);
+    });
   });
 });
 
