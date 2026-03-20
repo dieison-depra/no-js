@@ -1502,6 +1502,13 @@ describe('Statement Interpreter', () => {
       _execStatement('msg = $event.type', ctx, { $event: { type: 'click' } });
       expect(ctx.msg).toBe('click');
     });
+
+    test('extraVars keys are not written back to the context', () => {
+      // __val is used by the model directive; it must not leak into the reactive context
+      _execStatement('count = __val', ctx, { __val: 42 });
+      expect(ctx.count).toBe(42);            // assignment succeeded
+      expect('__val' in ctx.__raw).toBe(false); // __val must not persist
+    });
   });
 
   describe('$refs Method Call', () => {
@@ -1535,7 +1542,6 @@ describe('Statement Interpreter', () => {
 describe('evaluate.js — expression cache (LRU)', () => {
   test('cache does not grow beyond 500 entries', () => {
     const ctx = createContext({});
-    const initialSize = _exprCache.size;
 
     for (let i = 0; i < 510; i++) {
       evaluate(`__lru_test_${i}__ || 0`, ctx);
@@ -1544,7 +1550,7 @@ describe('evaluate.js — expression cache (LRU)', () => {
     expect(_exprCache.size).toBeLessThanOrEqual(500);
   });
 
-  test('evicts the oldest entry when the cache is full', () => {
+  test('evicts the LRU entry when the cache is full', () => {
     const ctx = createContext({});
 
     // Fill to the limit with known keys
@@ -1553,13 +1559,15 @@ describe('evaluate.js — expression cache (LRU)', () => {
     }
 
     const firstKey = `__evict_test_0__ || 0`;
-    const hadFirst = _exprCache.has(firstKey);
 
-    // Adding one more should evict the first entry
+    // Re-access the first key so it becomes the most-recently-used
+    evaluate(firstKey, ctx);
+
+    // Adding one more should evict the LRU entry (entry 1, not entry 0)
     evaluate(`__evict_overflow__ || 0`, ctx);
 
-    // Either the first entry was already gone (from a prior test run filling the cache)
-    // or it is now evicted — the important assertion is that the cache size is bounded
+    // The recently-accessed entry must be retained
+    expect(_exprCache.has(firstKey)).toBe(true);
     expect(_exprCache.size).toBeLessThanOrEqual(500);
   });
 });

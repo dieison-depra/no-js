@@ -10,10 +10,21 @@ const _CACHE_MAX = 500;
 function _makeCache() {
   const map = new Map();
   return {
-    get(k) { return map.get(k); },
+    get(k) {
+      if (!map.has(k)) return undefined;
+      // Move to end so this entry is the most-recently-used
+      const v = map.get(k);
+      map.delete(k);
+      map.set(k, v);
+      return v;
+    },
     has(k) { return map.has(k); },
     set(k, v) {
-      if (map.size >= _CACHE_MAX) map.delete(map.keys().next().value);
+      if (map.has(k)) {
+        map.delete(k); // refresh position before re-inserting
+      } else if (map.size >= _CACHE_MAX) {
+        map.delete(map.keys().next().value); // evict LRU (insertion-order first)
+      }
       map.set(k, v);
     },
     get size() { return map.size; },
@@ -1223,9 +1234,11 @@ export function _execStatement(expr, ctx, extraVars = {}) {
       }
     }
 
-    // Write back new variables created during execution
+    // Write back new variables created during execution.
+    // Skip extraVars keys (e.g. __val, $el, $event) — they are execution-local
+    // and must not be persisted to the reactive context.
     for (const k in scope) {
-      if (k.startsWith("$") || chainKeys.has(k)) continue;
+      if (k.startsWith("$") || chainKeys.has(k) || k in extraVars) continue;
       ctx.$set(k, scope[k]);
     }
 
