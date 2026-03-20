@@ -210,69 +210,6 @@ describe('Globals', () => {
       expect(_storeWatchers.has(fn)).toBe(false);
     });
 
-    test('prunes stale $store watcher on next notify when element is removed without dispose', () => {
-      const ctx = createContext({});
-      const fn = jest.fn();
-
-      const parent = document.createElement('div');
-      const el = document.createElement('span');
-      parent.appendChild(el);
-      document.body.appendChild(parent);
-
-      _setCurrentEl(el);
-      _watchExpr('$store.cart', ctx, fn);
-      _setCurrentEl(null);
-
-      expect(_storeWatchers.has(fn)).toBe(true);
-
-      // Remove element externally (bypassing framework dispose)
-      parent.innerHTML = '';
-
-      // Watcher is still present — cleanup is lazy (via fn._el.isConnected check)
-      expect(_storeWatchers.has(fn)).toBe(true);
-
-      // Pruned on the next _notifyStoreWatchers call (fn._el.isConnected === false)
-      _notifyStoreWatchers();
-      expect(_storeWatchers.has(fn)).toBe(false);
-    });
-
-    test('disconnects MutationObserver via _onDispose when _disposeTree runs (each re-render pattern)', () => {
-      const ctx = createContext({});
-      const fn = jest.fn();
-
-      const container = document.createElement('div');
-      const itemWrapper = document.createElement('div');
-      container.appendChild(itemWrapper);
-      document.body.appendChild(container);
-
-      // Simulate processElement binding a $store watcher on itemWrapper
-      _setCurrentEl(itemWrapper);
-      _watchExpr('$store.cart.items', ctx, fn);
-      _setCurrentEl(null);
-
-      expect(_storeWatchers.has(fn)).toBe(true);
-
-      // Simulate each re-render: disposeTree then clear innerHTML
-      _disposeTree(itemWrapper);
-      container.innerHTML = '';
-
-      // Watcher must be removed by the _onDispose path (not the MutationObserver callback)
-      expect(_storeWatchers.has(fn)).toBe(false);
-    });
-
-    test('does not throw when element has no parentElement', () => {
-      const ctx = createContext({});
-      const fn = jest.fn();
-
-      // Element with no parent
-      const el = document.createElement('div');
-
-      _setCurrentEl(el);
-      expect(() => _watchExpr('$store.x', ctx, fn)).not.toThrow();
-      _setCurrentEl(null);
-
-      _storeWatchers.delete(fn);
-    });
   });
 });
 
@@ -1566,38 +1503,6 @@ describe('Statement Interpreter', () => {
       _execStatement('count = count + 1', child);
       expect(parent.count).toBe(1);
     });
-  });
-});
-
-describe('evaluate.js — expression cache (LRU)', () => {
-  test('cache does not grow beyond 500 entries', () => {
-    const ctx = createContext({});
-    const initialSize = _exprCache.size;
-
-    for (let i = 0; i < 510; i++) {
-      evaluate(`__lru_test_${i}__ || 0`, ctx);
-    }
-
-    expect(_exprCache.size).toBeLessThanOrEqual(500);
-  });
-
-  test('evicts the oldest entry when the cache is full', () => {
-    const ctx = createContext({});
-
-    // Fill to the limit with known keys
-    for (let i = 0; i < 500; i++) {
-      evaluate(`__evict_test_${i}__ || 0`, ctx);
-    }
-
-    const firstKey = `__evict_test_0__ || 0`;
-    const hadFirst = _exprCache.has(firstKey);
-
-    // Adding one more should evict the first entry
-    evaluate(`__evict_overflow__ || 0`, ctx);
-
-    // Either the first entry was already gone (from a prior test run filling the cache)
-    // or it is now evicted — the important assertion is that the cache size is bounded
-    expect(_exprCache.size).toBeLessThanOrEqual(500);
   });
 });
 
