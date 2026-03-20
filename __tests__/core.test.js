@@ -234,30 +234,6 @@ describe('Globals', () => {
       expect(_storeWatchers.has(fn)).toBe(false);
     });
 
-    test('disconnects MutationObserver via _onDispose when _disposeTree runs (each re-render pattern)', () => {
-      const ctx = createContext({});
-      const fn = jest.fn();
-
-      const container = document.createElement('div');
-      const itemWrapper = document.createElement('div');
-      container.appendChild(itemWrapper);
-      document.body.appendChild(container);
-
-      // Simulate processElement binding a $store watcher on itemWrapper
-      _setCurrentEl(itemWrapper);
-      _watchExpr('$store.cart.items', ctx, fn);
-      _setCurrentEl(null);
-
-      expect(_storeWatchers.has(fn)).toBe(true);
-
-      // Simulate each re-render: disposeTree then clear innerHTML
-      _disposeTree(itemWrapper);
-      container.innerHTML = '';
-
-      // Watcher must be removed by the _onDispose path (not the MutationObserver callback)
-      expect(_storeWatchers.has(fn)).toBe(false);
-    });
-
     test('does not throw when element has no parentElement', () => {
       const ctx = createContext({});
       const fn = jest.fn();

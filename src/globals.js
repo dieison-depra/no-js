@@ -17,7 +17,6 @@ export const _config = {
   debug: false,
   devtools: false,
   sanitize: true,
-  sanitizeHtml: null,
 };
 
 export const _interceptors = { request: [], response: [] };
@@ -80,7 +79,9 @@ export function _watchExpr(expr, ctx, fn) {
           ro.disconnect();
         }
       });
-      ro.observe(el.parentElement, { childList: true, subtree: true });
+      // subtree: false — we only care about direct children of parentElement being removed
+      ro.observe(el.parentElement, { childList: true, subtree: false });
+      // Also disconnect via the normal disposal path to avoid a dangling MO
       _onDispose(() => ro.disconnect());
     }
   }
