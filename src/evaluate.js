@@ -2,11 +2,10 @@
 //  EXPRESSION EVALUATOR
 // ═══════════════════════════════════════════════════════════════════════
 
-import { _stores, _routerInstance, _filters, _warn, _notifyStoreWatchers } from "./globals.js";
+import { _config, _stores, _routerInstance, _filters, _warn, _notifyStoreWatchers } from "./globals.js";
 import { _i18n } from "./i18n.js";
 import { _collectKeys } from "./context.js";
 
-const _CACHE_MAX = 500;
 function _makeCache() {
   const map = new Map();
   return {
@@ -20,9 +19,10 @@ function _makeCache() {
     },
     has(k) { return map.has(k); },
     set(k, v) {
+      const max = _config.exprCacheSize;
       if (map.has(k)) {
         map.delete(k); // refresh position before re-inserting
-      } else if (map.size >= _CACHE_MAX) {
+      } else if (map.size >= max) {
         map.delete(map.keys().next().value); // evict LRU (insertion-order first)
       }
       map.set(k, v);
