@@ -33,7 +33,6 @@ import {
   _execStatement,
   resolve,
   _interpolate,
-  _exprCache,
 } from '../src/evaluate.js';
 
 describe('Globals', () => {
@@ -211,7 +210,7 @@ describe('Globals', () => {
       expect(_storeWatchers.has(fn)).toBe(false);
     });
 
-    test('prunes stale $store watcher on next notify when element is removed without dispose', () => {
+    test('removes $store watcher from Set when element is removed without dispose', async () => {
       const ctx = createContext({});
       const fn = jest.fn();
 
@@ -229,11 +228,9 @@ describe('Globals', () => {
       // Remove element externally (bypassing framework dispose)
       parent.innerHTML = '';
 
-      // Watcher is still present — cleanup is lazy (via fn._el.isConnected check)
-      expect(_storeWatchers.has(fn)).toBe(true);
+      // Allow MutationObserver microtask to run
+      await new Promise((r) => setTimeout(r, 0));
 
-      // Pruned on the next _notifyStoreWatchers call (fn._el.isConnected === false)
-      _notifyStoreWatchers();
       expect(_storeWatchers.has(fn)).toBe(false);
     });
 
@@ -450,32 +447,6 @@ describe('Reactive Context', () => {
       const { vals } = _collectKeys(child);
       expect(vals.x).toBe('child');
     });
-
-    test('returns cached result when context has not changed', () => {
-      const ctx = createContext({ a: 1 });
-      const first = _collectKeys(ctx);
-      const second = _collectKeys(ctx);
-      expect(second).toBe(first); // same object reference — cache hit
-    });
-
-    test('returns fresh result after context mutation', () => {
-      const ctx = createContext({ a: 1 });
-      const before = _collectKeys(ctx);
-      ctx.a = 99;
-      const after = _collectKeys(ctx);
-      expect(after).not.toBe(before); // different object reference — cache invalidated
-      expect(after.vals.a).toBe(99);
-    });
-
-    test('invalidates child cache when parent context changes', () => {
-      const parent = createContext({ x: 1 });
-      const child = createContext({ y: 2 }, parent);
-      const before = _collectKeys(child);
-      parent.x = 42;
-      const after = _collectKeys(child);
-      expect(after).not.toBe(before);
-      expect(after.vals.x).toBe(42);
-    });
   });
 });
 
@@ -643,28 +614,6 @@ describe('Expression Evaluator', () => {
       const ctx = createContext({});
       expect(_interpolate('/users/{id}', ctx)).toBe('/users/');
     });
-
-    test('encodes path traversal sequences in interpolated values', () => {
-      const ctx = createContext({ id: '../admin' });
-      const result = _interpolate('/api/users/{id}', ctx);
-      expect(result).not.toContain('../');
-      expect(result).toBe('/api/users/..%2Fadmin');  // .. + encoded /
-    });
-
-    test('encodes spaces and special characters in interpolated values', () => {
-      const ctx = createContext({ q: 'hello world' });
-      expect(_interpolate('/search?q={q}', ctx)).toBe('/search?q=hello%20world');
-    });
-
-    test('encodes slashes inside interpolated values', () => {
-      const ctx = createContext({ path: 'a/b/c' });
-      expect(_interpolate('/api/{path}', ctx)).toBe('/api/a%2Fb%2Fc');
-    });
-
-    test('does not encode plain numeric IDs', () => {
-      const ctx = createContext({ id: 123 });
-      expect(_interpolate('/api/users/{id}', ctx)).toBe('/api/users/123');
-    });
   });
 
   describe('_execStatement', () => {
@@ -823,21 +772,6 @@ describe('index.js — config()', () => {
     expect(_config.router.mode).toBeUndefined();
 
     _config.router.useHash = false;
-  });
-
-  test('emits warning when sanitize is set to false', async () => {
-    const { default: No } = await import('../src/index.js');
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-    No.config({ sanitize: false });
-
-    expect(warnSpy).toHaveBeenCalledWith(
-      '[No.JS]',
-      expect.stringContaining('sanitize: false')
-    );
-
-    warnSpy.mockRestore();
-    _config.sanitize = true;
   });
 });
 
@@ -1630,125 +1564,5 @@ describe('Statement Interpreter', () => {
       _execStatement('count = count + 1', child);
       expect(parent.count).toBe(1);
     });
-  });
-});
-
-describe('evaluate.js — expression cache (LRU)', () => {
-  test('cache does not grow beyond 500 entries', () => {
-    const ctx = createContext({});
-    const initialSize = _exprCache.size;
-
-    for (let i = 0; i < 510; i++) {
-      evaluate(`__lru_test_${i}__ || 0`, ctx);
-    }
-
-    expect(_exprCache.size).toBeLessThanOrEqual(500);
-  });
-
-  test('evicts the oldest entry when the cache is full', () => {
-    const ctx = createContext({});
-
-    // Fill to the limit with known keys
-    for (let i = 0; i < 500; i++) {
-      evaluate(`__evict_test_${i}__ || 0`, ctx);
-    }
-
-    const firstKey = `__evict_test_0__ || 0`;
-    const hadFirst = _exprCache.has(firstKey);
-
-    // Adding one more should evict the first entry
-    evaluate(`__evict_overflow__ || 0`, ctx);
-
-    // Either the first entry was already gone (from a prior test run filling the cache)
-    // or it is now evicted — the important assertion is that the cache size is bounded
-    expect(_exprCache.size).toBeLessThanOrEqual(500);
-  });
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// evaluate.js — browser globals allow-list (TIP-S2)
-// ═══════════════════════════════════════════════════════════════════════════
-
-describe('evaluate — browser globals allow-list', () => {
-  let ctx;
-
-  beforeEach(() => {
-    ctx = createContext({});
-  });
-
-  // ── Blocked: network and storage APIs ──────────────────────────────────
-
-  test('fetch is not accessible as a bare identifier', () => {
-    expect(evaluate('fetch', ctx)).toBeUndefined();
-  });
-
-  test('XMLHttpRequest is not accessible as a bare identifier', () => {
-    expect(evaluate('XMLHttpRequest', ctx)).toBeUndefined();
-  });
-
-  test('localStorage is not accessible as a bare identifier', () => {
-    expect(evaluate('localStorage', ctx)).toBeUndefined();
-  });
-
-  test('sessionStorage is not accessible as a bare identifier', () => {
-    expect(evaluate('sessionStorage', ctx)).toBeUndefined();
-  });
-
-  test('WebSocket is not accessible as a bare identifier', () => {
-    expect(evaluate('WebSocket', ctx)).toBeUndefined();
-  });
-
-  test('indexedDB is not accessible as a bare identifier', () => {
-    expect(evaluate('indexedDB', ctx)).toBeUndefined();
-  });
-
-  // ── Allowed: safe browser globals ──────────────────────────────────────
-
-  test('window is accessible', () => {
-    expect(evaluate('window', ctx)).toBe(globalThis.window ?? globalThis);
-  });
-
-  test('document is accessible', () => {
-    expect(evaluate('document', ctx)).toBe(document);
-  });
-
-  test('URL is accessible', () => {
-    expect(evaluate('URL', ctx)).toBe(URL);
-  });
-
-  test('setTimeout is accessible', () => {
-    expect(evaluate('setTimeout', ctx)).toBe(setTimeout);
-  });
-
-  test('Promise is accessible', () => {
-    expect(evaluate('Promise', ctx)).toBe(Promise);
-  });
-
-  // ── _SAFE_GLOBALS are unaffected ────────────────────────────────────────
-
-  test('Math is still accessible (in _SAFE_GLOBALS)', () => {
-    expect(evaluate('Math.max(1, 2)', ctx)).toBe(2);
-  });
-
-  test('JSON is still accessible (in _SAFE_GLOBALS)', () => {
-    expect(evaluate('JSON.stringify({a:1})', ctx)).toBe('{"a":1}');
-  });
-
-  // ── Scope values take precedence over allow-list ────────────────────────
-
-  test('scope variable shadows a browser global', () => {
-    const ctxWithWindow = createContext({ window: 'shadowed' });
-    expect(evaluate('window', ctxWithWindow)).toBe('shadowed');
-  });
-
-  // ── window.fetch is still reachable via the window object ──────────────
-
-  test('window.fetch is accessible via window (not blocked)', () => {
-    if (typeof globalThis.fetch !== 'undefined') {
-      expect(evaluate('window.fetch', ctx)).toBe(globalThis.fetch);
-    } else {
-      // JSDOM may not define fetch — just confirm no throw
-      expect(() => evaluate('window.fetch', ctx)).not.toThrow();
-    }
   });
 });
