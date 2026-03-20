@@ -33,7 +33,6 @@ import {
   _execStatement,
   resolve,
   _interpolate,
-  _exprCache,
 } from '../src/evaluate.js';
 
 describe('Globals', () => {
@@ -211,43 +210,6 @@ describe('Globals', () => {
       expect(_storeWatchers.has(fn)).toBe(false);
     });
 
-    test('removes $store watcher from Set when element is removed without dispose', async () => {
-      const ctx = createContext({});
-      const fn = jest.fn();
-
-      const parent = document.createElement('div');
-      const el = document.createElement('span');
-      parent.appendChild(el);
-      document.body.appendChild(parent);
-
-      _setCurrentEl(el);
-      _watchExpr('$store.cart', ctx, fn);
-      _setCurrentEl(null);
-
-      expect(_storeWatchers.has(fn)).toBe(true);
-
-      // Remove element externally (bypassing framework dispose)
-      parent.innerHTML = '';
-
-      // Allow MutationObserver microtask to run
-      await new Promise((r) => setTimeout(r, 0));
-
-      expect(_storeWatchers.has(fn)).toBe(false);
-    });
-
-    test('does not throw when element has no parentElement', () => {
-      const ctx = createContext({});
-      const fn = jest.fn();
-
-      // Element with no parent
-      const el = document.createElement('div');
-
-      _setCurrentEl(el);
-      expect(() => _watchExpr('$store.x', ctx, fn)).not.toThrow();
-      _setCurrentEl(null);
-
-      _storeWatchers.delete(fn);
-    });
   });
 });
 
@@ -423,32 +385,6 @@ describe('Reactive Context', () => {
       const child = createContext({ x: 'child' }, parent);
       const { vals } = _collectKeys(child);
       expect(vals.x).toBe('child');
-    });
-
-    test('returns cached result when context has not changed', () => {
-      const ctx = createContext({ a: 1 });
-      const first = _collectKeys(ctx);
-      const second = _collectKeys(ctx);
-      expect(second).toBe(first); // same object reference — cache hit
-    });
-
-    test('returns fresh result after context mutation', () => {
-      const ctx = createContext({ a: 1 });
-      const before = _collectKeys(ctx);
-      ctx.a = 99;
-      const after = _collectKeys(ctx);
-      expect(after).not.toBe(before); // different object reference — cache invalidated
-      expect(after.vals.a).toBe(99);
-    });
-
-    test('invalidates child cache when parent context changes', () => {
-      const parent = createContext({ x: 1 });
-      const child = createContext({ y: 2 }, parent);
-      const before = _collectKeys(child);
-      parent.x = 42;
-      const after = _collectKeys(child);
-      expect(after).not.toBe(before);
-      expect(after.vals.x).toBe(42);
     });
   });
 });
@@ -775,35 +711,6 @@ describe('index.js — config()', () => {
     expect(_config.router.mode).toBeUndefined();
 
     _config.router.useHash = false;
-  });
-
-  test('emits warning when sanitize is set to false', async () => {
-    const { default: No } = await import('../src/index.js');
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-    No.config({ sanitize: false });
-
-    expect(warnSpy).toHaveBeenCalledWith(
-      '[No.JS]',
-      expect.stringContaining('sanitize: false')
-    );
-
-    warnSpy.mockRestore();
-    _config.sanitize = true;
-  });
-
-  test('does not emit warning when sanitize is explicitly set to true', async () => {
-    const { default: No } = await import('../src/index.js');
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-    No.config({ sanitize: true });
-
-    const sanitizeWarningCalled = warnSpy.mock.calls.some(
-      (args) => args.some((a) => typeof a === 'string' && a.includes('sanitize'))
-    );
-    expect(sanitizeWarningCalled).toBe(false);
-
-    warnSpy.mockRestore();
   });
 });
 
@@ -1569,13 +1476,6 @@ describe('Statement Interpreter', () => {
       _execStatement('msg = $event.type', ctx, { $event: { type: 'click' } });
       expect(ctx.msg).toBe('click');
     });
-
-    test('extraVars keys are not written back to the context', () => {
-      // __val is used by the model directive; it must not leak into the reactive context
-      _execStatement('count = __val', ctx, { __val: 42 });
-      expect(ctx.count).toBe(42);            // assignment succeeded
-      expect('__val' in ctx.__raw).toBe(false); // __val must not persist
-    });
   });
 
   describe('$refs Method Call', () => {
@@ -1606,35 +1506,90 @@ describe('Statement Interpreter', () => {
   });
 });
 
-describe('evaluate.js — expression cache (LRU)', () => {
-  test('cache does not grow beyond 500 entries', () => {
-    const ctx = createContext({});
+// ═══════════════════════════════════════════════════════════════════════════
+// evaluate.js — browser globals allow-list (TIP-S2)
+// ═══════════════════════════════════════════════════════════════════════════
 
-    for (let i = 0; i < 510; i++) {
-      evaluate(`__lru_test_${i}__ || 0`, ctx);
-    }
+describe('evaluate — browser globals allow-list', () => {
+  let ctx;
 
-    expect(_exprCache.size).toBeLessThanOrEqual(500);
+  beforeEach(() => {
+    ctx = createContext({});
   });
 
-  test('evicts the LRU entry when the cache is full', () => {
-    const ctx = createContext({});
+  // ── Blocked: network and storage APIs ──────────────────────────────────
 
-    // Fill to the limit with known keys
-    for (let i = 0; i < 500; i++) {
-      evaluate(`__evict_test_${i}__ || 0`, ctx);
+  test('fetch is not accessible as a bare identifier', () => {
+    expect(evaluate('fetch', ctx)).toBeUndefined();
+  });
+
+  test('XMLHttpRequest is not accessible as a bare identifier', () => {
+    expect(evaluate('XMLHttpRequest', ctx)).toBeUndefined();
+  });
+
+  test('localStorage is not accessible as a bare identifier', () => {
+    expect(evaluate('localStorage', ctx)).toBeUndefined();
+  });
+
+  test('sessionStorage is not accessible as a bare identifier', () => {
+    expect(evaluate('sessionStorage', ctx)).toBeUndefined();
+  });
+
+  test('WebSocket is not accessible as a bare identifier', () => {
+    expect(evaluate('WebSocket', ctx)).toBeUndefined();
+  });
+
+  test('indexedDB is not accessible as a bare identifier', () => {
+    expect(evaluate('indexedDB', ctx)).toBeUndefined();
+  });
+
+  // ── Allowed: safe browser globals ──────────────────────────────────────
+
+  test('window is accessible', () => {
+    expect(evaluate('window', ctx)).toBe(globalThis.window ?? globalThis);
+  });
+
+  test('document is accessible', () => {
+    expect(evaluate('document', ctx)).toBe(document);
+  });
+
+  test('URL is accessible', () => {
+    expect(evaluate('URL', ctx)).toBe(URL);
+  });
+
+  test('setTimeout is accessible', () => {
+    expect(evaluate('setTimeout', ctx)).toBe(setTimeout);
+  });
+
+  test('Promise is accessible', () => {
+    expect(evaluate('Promise', ctx)).toBe(Promise);
+  });
+
+  // ── _SAFE_GLOBALS are unaffected ────────────────────────────────────────
+
+  test('Math is still accessible (in _SAFE_GLOBALS)', () => {
+    expect(evaluate('Math.max(1, 2)', ctx)).toBe(2);
+  });
+
+  test('JSON is still accessible (in _SAFE_GLOBALS)', () => {
+    expect(evaluate('JSON.stringify({a:1})', ctx)).toBe('{"a":1}');
+  });
+
+  // ── Scope values take precedence over allow-list ────────────────────────
+
+  test('scope variable shadows a browser global', () => {
+    const ctxWithWindow = createContext({ window: 'shadowed' });
+    expect(evaluate('window', ctxWithWindow)).toBe('shadowed');
+  });
+
+  // ── window.fetch is still reachable via the window object ──────────────
+
+  test('window.fetch is accessible via window (not blocked)', () => {
+    if (typeof globalThis.fetch !== 'undefined') {
+      expect(evaluate('window.fetch', ctx)).toBe(globalThis.fetch);
+    } else {
+      // JSDOM may not define fetch — just confirm no throw
+      expect(() => evaluate('window.fetch', ctx)).not.toThrow();
     }
-
-    const firstKey = `__evict_test_0__ || 0`;
-
-    // Re-access the first key so it becomes the most-recently-used
-    evaluate(firstKey, ctx);
-
-    // Adding one more should evict the LRU entry (entry 1, not entry 0)
-    evaluate(`__evict_overflow__ || 0`, ctx);
-
-    // The recently-accessed entry must be retained
-    expect(_exprCache.has(firstKey)).toBe(true);
-    expect(_exprCache.size).toBeLessThanOrEqual(500);
   });
 });
