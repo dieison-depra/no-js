@@ -22,6 +22,7 @@ registerDirective("state", {
     const persistKey = el.getAttribute("persist-key");
     if (persist && !persistKey) {
       _warn(`persist="${persist}" requires a persist-key attribute. State will not be persisted.`);
+      return;
     }
     if (persist && persistKey) {
       const store =
@@ -98,16 +99,6 @@ registerDirective("computed", {
   },
 });
 
-function _shallowEqual(a, b) {
-  if (a === b) return true;
-  if (a === null || b === null) return false;
-  if (typeof a !== "object" || typeof b !== "object") return false;
-  const ka = Object.keys(a), kb = Object.keys(b);
-  if (ka.length !== kb.length) return false;
-  for (const k of ka) if (a[k] !== b[k]) return false;
-  return true;
-}
-
 registerDirective("watch", {
   priority: 2,
   init(el, name, watchExpr) {
@@ -116,7 +107,7 @@ registerDirective("watch", {
     let lastVal = evaluate(watchExpr, ctx);
     _watchExpr(watchExpr, ctx, () => {
       const newVal = evaluate(watchExpr, ctx);
-      if (!_shallowEqual(newVal, lastVal)) {
+      if (newVal !== lastVal) {
         const oldVal = lastVal;
         lastVal = newVal;
         if (onChange)

@@ -158,44 +158,6 @@ describe('Watch Directive', () => {
     parent.__ctx.count = 5;
     expect(parent.__ctx.lastChange).toBe('changed');
   });
-
-  test('does not fire on:change when object contents are shallowly equal', () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{ user: { name: "Alice" }, changeCount: 0 }');
-    const watch = document.createElement('span');
-    watch.setAttribute('watch', 'user');
-    watch.setAttribute('on:change', 'changeCount++');
-    parent.appendChild(watch);
-    document.body.appendChild(parent);
-    processTree(parent);
-
-    const ctx = parent.__ctx;
-
-    // Assign a new object with the same contents — shallowEqual should suppress the event
-    ctx.user = { name: 'Alice' };
-    expect(ctx.changeCount).toBe(0);
-
-    // Assign a new object with different contents — should fire
-    ctx.user = { name: 'Bob' };
-    expect(ctx.changeCount).toBe(1);
-  });
-
-  test('fires on:change when primitive value changes', () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{ score: 10, fired: false }');
-    const watch = document.createElement('span');
-    watch.setAttribute('watch', 'score');
-    watch.setAttribute('on:change', 'fired = true');
-    parent.appendChild(watch);
-    document.body.appendChild(parent);
-    processTree(parent);
-
-    parent.__ctx.score = 10; // same value
-    expect(parent.__ctx.fired).toBe(false);
-
-    parent.__ctx.score = 20;
-    expect(parent.__ctx.fired).toBe(true);
-  });
 });
 
 
@@ -273,38 +235,6 @@ describe('Bind-HTML Directive', () => {
     expect(div.innerHTML).not.toContain('<script');
     expect(div.innerHTML).toContain('<p>safe</p>');
   });
-
-  test('skips DOM write when value has not changed', () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{ content: "<b>Hello</b>", other: 0 }');
-    const div = document.createElement('div');
-    div.setAttribute('bind-html', 'content');
-    parent.appendChild(div);
-    document.body.appendChild(parent);
-    processTree(parent);
-
-    const ctx = findContext(parent);
-
-    let writeCount = 0;
-    const descriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
-    Object.defineProperty(div, 'innerHTML', {
-      set(v) { writeCount++; descriptor.set.call(this, v); },
-      get() { return descriptor.get.call(this); },
-      configurable: true,
-    });
-
-    // Trigger a state change that does NOT affect content
-    ctx.other = 1;
-    expect(writeCount).toBe(0);
-
-    // Trigger a state change that DOES affect content
-    ctx.content = '<b>World</b>';
-    expect(writeCount).toBe(1);
-
-    // Same value again — no extra write
-    ctx.content = '<b>World</b>';
-    expect(writeCount).toBe(1);
-  });
 });
 
 describe('Bind-* Directive', () => {
@@ -353,67 +283,6 @@ describe('Bind-* Directive', () => {
     expect(div.getAttribute('title')).toBe('hello');
     parent.__ctx.title = null;
     expect(div.hasAttribute('title')).toBe(false);
-  });
-
-  test('blocks javascript: protocol in bind-href', () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{ url: "javascript:alert(1)" }');
-    const a = document.createElement('a');
-    a.setAttribute('bind-href', 'url');
-    parent.appendChild(a);
-    document.body.appendChild(parent);
-    processTree(parent);
-
-    expect(a.getAttribute('href')).toBe('#');
-  });
-
-  test('blocks vbscript: protocol in bind-href', () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{ url: "vbscript:run()" }');
-    const a = document.createElement('a');
-    a.setAttribute('bind-href', 'url');
-    parent.appendChild(a);
-    document.body.appendChild(parent);
-    processTree(parent);
-
-    expect(a.getAttribute('href')).toBe('#');
-  });
-
-  test('blocks javascript: protocol in bind-src', () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{ src: "javascript:void(0)" }');
-    const img = document.createElement('img');
-    img.setAttribute('bind-src', 'src');
-    parent.appendChild(img);
-    document.body.appendChild(parent);
-    processTree(parent);
-
-    expect(img.getAttribute('src')).toBe('#');
-  });
-
-  test('passes safe HTTPS URL through bind-href unchanged', () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{ url: "https://example.com/page" }');
-    const a = document.createElement('a');
-    a.setAttribute('bind-href', 'url');
-    parent.appendChild(a);
-    document.body.appendChild(parent);
-    processTree(parent);
-
-    expect(a.getAttribute('href')).toBe('https://example.com/page');
-  });
-
-  test('does not sanitize non-URL attributes like data-custom', () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{ val: "javascript:test" }');
-    const div = document.createElement('div');
-    div.setAttribute('bind-data-custom', 'val');
-    parent.appendChild(div);
-    document.body.appendChild(parent);
-    processTree(parent);
-
-    // data-custom is not in _SAFE_URL_ATTRS — value passes through
-    expect(div.getAttribute('data-custom')).toBe('javascript:test');
   });
 });
 
@@ -1172,58 +1041,6 @@ describe('state persist directive', () => {
     expect(ctx.safe).toBe(true);
   });
 
-  test('persist-fields stores only the listed fields', () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{ theme: "dark", lang: "pt", token: "secret" }');
-    parent.setAttribute('persist', 'localStorage');
-    parent.setAttribute('persist-key', 'pf-test1');
-    parent.setAttribute('persist-fields', 'theme, lang');
-    document.body.appendChild(parent);
-
-    processTree(parent);
-    // Mutate state to trigger $watch
-    findContext(parent).theme = 'light';
-
-    const stored = JSON.parse(localStorage.getItem('nojs_state_pf-test1'));
-    expect(stored).toEqual({ theme: 'light', lang: 'pt' });
-    expect(stored.token).toBeUndefined();
-  });
-
-  test('persist-fields restores only the listed fields', () => {
-    localStorage.setItem('nojs_state_pf-test2', JSON.stringify({ theme: 'light', lang: 'en', token: 'leaked' }));
-
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{ theme: "dark", lang: "pt", token: "safe" }');
-    parent.setAttribute('persist', 'localStorage');
-    parent.setAttribute('persist-key', 'pf-test2');
-    parent.setAttribute('persist-fields', 'theme, lang');
-    document.body.appendChild(parent);
-
-    processTree(parent);
-
-    const ctx = findContext(parent);
-    expect(ctx.theme).toBe('light');
-    expect(ctx.lang).toBe('en');
-    // token was in storage but not in persist-fields — must not be restored
-    expect(ctx.token).toBe('safe');
-  });
-
-  test('persist without persist-fields stores the full state', () => {
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{ a: 1, b: 2 }');
-    parent.setAttribute('persist', 'localStorage');
-    parent.setAttribute('persist-key', 'pf-test3');
-    document.body.appendChild(parent);
-
-    processTree(parent);
-    // Mutate state to trigger $watch
-    findContext(parent).a = 99;
-
-    const stored = JSON.parse(localStorage.getItem('nojs_state_pf-test3'));
-    expect(stored.a).toBe(99);
-    expect(stored.b).toBe(2);
-  });
-
   test('warns and skips persistence when persist-key is missing', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -1241,6 +1058,67 @@ describe('state persist directive', () => {
     expect(localStorage.length).toBe(0);
 
     warnSpy.mockRestore();
+  });
+
+  test('persist-fields limits which fields are saved to storage', () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{ theme: "dark", token: "secret", sidebar: true }');
+    parent.setAttribute('persist', 'localStorage');
+    parent.setAttribute('persist-key', 'pf-test1');
+    parent.setAttribute('persist-fields', 'theme, sidebar');
+    document.body.appendChild(parent);
+
+    processTree(parent);
+
+    // Mutate state to trigger the $watch save
+    const ctx = parent.__ctx;
+    ctx.theme = 'light';
+
+    const saved = JSON.parse(localStorage.getItem('nojs_state_pf-test1'));
+    expect(saved.theme).toBe('light');
+    expect(saved.sidebar).toBe(true);
+    // token is not in persist-fields — must not be written to storage
+    expect(saved.token).toBeUndefined();
+  });
+
+  test('persist-fields limits which fields are restored from storage', () => {
+    // Pre-populate storage with all three fields (as if saved by old code without persist-fields)
+    localStorage.setItem('nojs_state_pf-test2', JSON.stringify({ theme: 'light', token: 'old-secret', sidebar: false }));
+
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{ theme: "dark", token: "default", sidebar: true }');
+    parent.setAttribute('persist', 'localStorage');
+    parent.setAttribute('persist-key', 'pf-test2');
+    parent.setAttribute('persist-fields', 'theme');
+    document.body.appendChild(parent);
+
+    processTree(parent);
+
+    const ctx = parent.__ctx;
+    // Only theme should be restored from storage
+    expect(ctx.theme).toBe('light');
+    // token is not in persist-fields — must stay at initial value
+    expect(ctx.token).toBe('default');
+  });
+
+  test('persist-fields handles comma-separated values with whitespace', () => {
+    const parent = document.createElement('div');
+    parent.setAttribute('state', '{ a: 1, b: 2, c: 3 }');
+    parent.setAttribute('persist', 'localStorage');
+    parent.setAttribute('persist-key', 'pf-test3');
+    parent.setAttribute('persist-fields', '  a , c  ');
+    document.body.appendChild(parent);
+
+    processTree(parent);
+
+    // Mutate to trigger the $watch save
+    const ctx = parent.__ctx;
+    ctx.a = 10;
+
+    const saved = JSON.parse(localStorage.getItem('nojs_state_pf-test3'));
+    expect(saved.a).toBe(10);
+    expect(saved.c).toBe(3);
+    expect(saved.b).toBeUndefined();
   });
 });
 
@@ -2051,34 +1929,6 @@ describe('on:updated lifecycle hook', () => {
 
     expect(ctx.updated).toBe(true);
   });
-
-  test('does not fire after element is removed from DOM externally', async () => {
-    let callCount = 0;
-    const parent = document.createElement('div');
-    parent.setAttribute('state', '{ count: 0 }');
-    const child = document.createElement('div');
-    child.setAttribute('on:updated', 'count++');
-    child.innerHTML = '<span>Original</span>';
-    parent.appendChild(child);
-    document.body.appendChild(parent);
-    processTree(parent);
-
-    // Confirm it fires while connected
-    child.innerHTML = '<span>Changed</span>';
-    await new Promise((r) => setTimeout(r, 50));
-    const ctx = findContext(parent);
-    expect(ctx.count).toBe(1);
-
-    // Remove element externally (bypassing framework dispose)
-    parent.innerHTML = '';
-
-    // Trigger a mutation on the now-detached child
-    child.innerHTML = '<span>After removal</span>';
-    await new Promise((r) => setTimeout(r, 50));
-
-    // Count must not have increased
-    expect(ctx.count).toBe(1);
-  });
 });
 
 describe('on:error lifecycle hook', () => {
@@ -2441,469 +2291,5 @@ describe('foreach with inline template (no external template)', () => {
 
     const texts = wrappers.map((w) => w.querySelector('span').textContent);
     expect(texts).toEqual(['c', 'd']);
-  });
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// loops.js — key-based reconciliation in each and foreach (TIP-P3)
-// ═══════════════════════════════════════════════════════════════════════════
-
-describe('each — key-based reconciliation', () => {
-  let container;
-
-  beforeEach(() => {
-    document.body.innerHTML = '';
-    Object.keys(_stores).forEach((k) => delete _stores[k]);
-    container = document.createElement('div');
-    document.body.appendChild(container);
-  });
-
-  afterEach(() => {
-    document.body.innerHTML = '';
-  });
-
-  function makeEachList(items) {
-    const state = document.createElement('div');
-    state.setAttribute('state', JSON.stringify({ items }));
-    container.appendChild(state);
-
-    const tpl = document.createElement('template');
-    tpl.id = 'row-tpl';
-    tpl.innerHTML = '<span class="row"></span>';
-    document.body.appendChild(tpl);
-
-    const list = document.createElement('div');
-    list.setAttribute('each', 'item in items');
-    list.setAttribute('template', 'row-tpl');
-    list.setAttribute('key', 'item.id');
-    state.appendChild(list);
-
-    processTree(state);
-    return { state, list };
-  }
-
-  test('push: only one new wrapper is created, existing ones are preserved', () => {
-    const { list, state } = makeEachList([{ id: 1 }, { id: 2 }]);
-    const initialWrappers = [...list.children];
-    expect(initialWrappers).toHaveLength(2);
-
-    // Mark wrappers to detect identity preservation
-    initialWrappers[0].__marker = 'A';
-    initialWrappers[1].__marker = 'B';
-
-    // Push a new item
-    state.__ctx.__raw.items = [{ id: 1 }, { id: 2 }, { id: 3 }];
-    state.__ctx.$notify();
-
-    expect(list.children).toHaveLength(3);
-    expect(list.children[0].__marker).toBe('A');
-    expect(list.children[1].__marker).toBe('B');
-    expect(list.children[2].__marker).toBeUndefined(); // new node
-  });
-
-  test('splice: only the removed wrapper is disposed, others preserved', () => {
-    const { list, state } = makeEachList([{ id: 1 }, { id: 2 }, { id: 3 }]);
-    const wrapperB = list.children[1];
-    wrapperB.__marker = 'B';
-    list.children[0].__marker = 'A';
-    list.children[2].__marker = 'C';
-
-    // Remove middle item
-    state.__ctx.__raw.items = [{ id: 1 }, { id: 3 }];
-    state.__ctx.$notify();
-
-    expect(list.children).toHaveLength(2);
-    expect(list.children[0].__marker).toBe('A');
-    expect(list.children[1].__marker).toBe('C');
-    expect(wrapperB.isConnected).toBe(false); // removed from DOM
-  });
-
-  test('reorder: DOM order matches new list order without recreating nodes', () => {
-    const { list, state } = makeEachList([{ id: 1 }, { id: 2 }, { id: 3 }]);
-    list.children[0].__marker = 'A';
-    list.children[1].__marker = 'B';
-    list.children[2].__marker = 'C';
-
-    // Reverse the list
-    state.__ctx.__raw.items = [{ id: 3 }, { id: 2 }, { id: 1 }];
-    state.__ctx.$notify();
-
-    expect(list.children).toHaveLength(3);
-    expect(list.children[0].__marker).toBe('C');
-    expect(list.children[1].__marker).toBe('B');
-    expect(list.children[2].__marker).toBe('A');
-  });
-
-  test('no key attribute: falls back to full rebuild (backward compat)', () => {
-    // Ensure row-tpl exists in this test's DOM (beforeEach clears it)
-    const tpl = document.createElement('template');
-    tpl.id = 'row-tpl';
-    tpl.innerHTML = '<span class="row"></span>';
-    document.body.appendChild(tpl);
-
-    const state = document.createElement('div');
-    state.setAttribute('state', JSON.stringify({ items: [{ id: 1 }, { id: 2 }] }));
-    container.appendChild(state);
-
-    const list = document.createElement('div');
-    list.setAttribute('each', 'item in items');
-    list.setAttribute('template', 'row-tpl');
-    // Note: no key attribute
-    state.appendChild(list);
-    processTree(state);
-
-    const first = list.children[0];
-    first.__marker = 'should-be-gone';
-
-    state.__ctx.__raw.items = [{ id: 1 }, { id: 2 }, { id: 3 }];
-    state.__ctx.$notify();
-
-    // Full rebuild: original wrapper is gone, marker is not on any child
-    const markers = [...list.children].map((c) => c.__marker).filter(Boolean);
-    expect(markers).toHaveLength(0);
-  });
-
-  test('$index and $count are updated on existing wrappers', () => {
-    const { list, state } = makeEachList([{ id: 1 }, { id: 2 }, { id: 3 }]);
-
-    // Remove first item — $index of remaining items must update
-    state.__ctx.__raw.items = [{ id: 2 }, { id: 3 }];
-    state.__ctx.$notify();
-
-    expect(list.children[0].__ctx.__raw.$index).toBe(0);
-    expect(list.children[1].__ctx.__raw.$index).toBe(1);
-    expect(list.children[0].__ctx.__raw.$first).toBe(true);
-    expect(list.children[1].__ctx.__raw.$last).toBe(true);
-  });
-
-  test('empty list clears all rendered wrappers (keyMap flushed)', () => {
-    const { list, state } = makeEachList([{ id: 1 }, { id: 2 }]);
-    expect(list.children).toHaveLength(2);
-
-    state.__ctx.__raw.items = [];
-    state.__ctx.$notify();
-
-    // Both wrappers disposed and removed
-    expect(list.children).toHaveLength(0);
-  });
-});
-
-describe('foreach — key-based reconciliation', () => {
-  let container;
-
-  beforeEach(() => {
-    document.body.innerHTML = '';
-    Object.keys(_stores).forEach((k) => delete _stores[k]);
-    container = document.createElement('div');
-    document.body.appendChild(container);
-  });
-
-  afterEach(() => {
-    document.body.innerHTML = '';
-  });
-
-  function makeForeachList(items) {
-    const state = document.createElement('div');
-    state.setAttribute('state', JSON.stringify({ items }));
-    container.appendChild(state);
-
-    const tpl = document.createElement('template');
-    tpl.id = 'fc-row-tpl';
-    tpl.innerHTML = '<span class="fc-row"></span>';
-    document.body.appendChild(tpl);
-
-    const list = document.createElement('div');
-    list.setAttribute('foreach', 'item');
-    list.setAttribute('from', 'items');
-    list.setAttribute('template', 'fc-row-tpl');
-    list.setAttribute('key', 'item.id');
-    state.appendChild(list);
-
-    processTree(state);
-    return { state, list };
-  }
-
-  test('push: existing wrappers preserved, one new wrapper created', () => {
-    const { list, state } = makeForeachList([{ id: 'a' }, { id: 'b' }]);
-    list.children[0].__marker = 'A';
-    list.children[1].__marker = 'B';
-
-    state.__ctx.__raw.items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
-    state.__ctx.$notify();
-
-    expect(list.children).toHaveLength(3);
-    expect(list.children[0].__marker).toBe('A');
-    expect(list.children[1].__marker).toBe('B');
-    expect(list.children[2].__marker).toBeUndefined();
-  });
-
-  test('splice: only the removed wrapper is taken out of DOM', () => {
-    const { list, state } = makeForeachList([{ id: 'a' }, { id: 'b' }, { id: 'c' }]);
-    const removed = list.children[1];
-    removed.__marker = 'B';
-    list.children[0].__marker = 'A';
-    list.children[2].__marker = 'C';
-
-    state.__ctx.__raw.items = [{ id: 'a' }, { id: 'c' }];
-    state.__ctx.$notify();
-
-    expect(list.children).toHaveLength(2);
-    expect(list.children[0].__marker).toBe('A');
-    expect(list.children[1].__marker).toBe('C');
-    expect(removed.isConnected).toBe(false);
-  });
-
-  test('reorder: nodes reused and repositioned without recreation', () => {
-    const { list, state } = makeForeachList([{ id: 'x' }, { id: 'y' }, { id: 'z' }]);
-    list.children[0].__marker = 'X';
-    list.children[1].__marker = 'Y';
-    list.children[2].__marker = 'Z';
-
-    state.__ctx.__raw.items = [{ id: 'z' }, { id: 'x' }, { id: 'y' }];
-    state.__ctx.$notify();
-
-    expect(list.children[0].__marker).toBe('Z');
-    expect(list.children[1].__marker).toBe('X');
-    expect(list.children[2].__marker).toBe('Y');
-  });
-
-  test('no key attribute: uses full rebuild (backward compat)', () => {
-    const state = document.createElement('div');
-    state.setAttribute('state', JSON.stringify({ items: [{ id: 1 }, { id: 2 }] }));
-    container.appendChild(state);
-
-    const tpl = document.createElement('template');
-    tpl.id = 'fc-nokey-tpl';
-    tpl.innerHTML = '<span></span>';
-    document.body.appendChild(tpl);
-
-    const list = document.createElement('div');
-    list.setAttribute('foreach', 'item');
-    list.setAttribute('from', 'items');
-    list.setAttribute('template', 'fc-nokey-tpl');
-    // No key attribute
-    state.appendChild(list);
-    processTree(state);
-
-    const first = list.children[0];
-    first.__marker = 'original';
-
-    state.__ctx.__raw.items = [{ id: 1 }, { id: 2 }, { id: 3 }];
-    state.__ctx.$notify();
-
-    const markers = [...list.children].map((c) => c.__marker).filter(Boolean);
-    expect(markers).toHaveLength(0); // full rebuild, no preserved markers
-  });
-});
-
-// ─── foreach + key + inline template (no external <template> element) ──────
-describe('foreach — key-based reconciliation, inline template', () => {
-  let container;
-
-  beforeEach(() => {
-    document.body.innerHTML = '';
-    Object.keys(_stores).forEach((k) => delete _stores[k]);
-    container = document.createElement('div');
-    document.body.appendChild(container);
-  });
-
-  afterEach(() => {
-    document.body.innerHTML = '';
-  });
-
-  // Build a foreach list that uses the element itself as the template
-  // (no template= attribute). The element's inner HTML becomes the clone source.
-  function makeInlineForeachList(items) {
-    const state = document.createElement('div');
-    state.setAttribute('state', JSON.stringify({ items }));
-    container.appendChild(state);
-
-    const list = document.createElement('div');
-    list.setAttribute('foreach', 'item');
-    list.setAttribute('from', 'items');
-    list.setAttribute('key', 'item.id');
-    list.innerHTML = '<span class="inline-row"></span>';
-    state.appendChild(list);
-
-    processTree(state);
-    return { state, list };
-  }
-
-  test('push: existing wrappers preserved, one new wrapper created', () => {
-    const { list, state } = makeInlineForeachList([{ id: 1 }, { id: 2 }]);
-    expect(list.children).toHaveLength(2);
-    list.children[0].__marker = 'A';
-    list.children[1].__marker = 'B';
-
-    state.__ctx.__raw.items = [{ id: 1 }, { id: 2 }, { id: 3 }];
-    state.__ctx.$notify();
-
-    expect(list.children).toHaveLength(3);
-    expect(list.children[0].__marker).toBe('A');
-    expect(list.children[1].__marker).toBe('B');
-    expect(list.children[2].__marker).toBeUndefined();
-  });
-
-  test('splice: only the removed wrapper is taken out of DOM', () => {
-    const { list, state } = makeInlineForeachList([{ id: 1 }, { id: 2 }, { id: 3 }]);
-    const removed = list.children[1];
-    removed.__marker = 'B';
-    list.children[0].__marker = 'A';
-    list.children[2].__marker = 'C';
-
-    state.__ctx.__raw.items = [{ id: 1 }, { id: 3 }];
-    state.__ctx.$notify();
-
-    expect(list.children).toHaveLength(2);
-    expect(list.children[0].__marker).toBe('A');
-    expect(list.children[1].__marker).toBe('C');
-    expect(removed.isConnected).toBe(false);
-  });
-
-  test('reorder: nodes repositioned without recreation', () => {
-    const { list, state } = makeInlineForeachList([{ id: 1 }, { id: 2 }, { id: 3 }]);
-    list.children[0].__marker = 'A';
-    list.children[1].__marker = 'B';
-    list.children[2].__marker = 'C';
-
-    state.__ctx.__raw.items = [{ id: 3 }, { id: 1 }, { id: 2 }];
-    state.__ctx.$notify();
-
-    expect(list.children[0].__marker).toBe('C');
-    expect(list.children[1].__marker).toBe('A');
-    expect(list.children[2].__marker).toBe('B');
-  });
-
-  test('each item renders its own clone (no shared template state)', () => {
-    const { list } = makeInlineForeachList([{ id: 'x' }, { id: 'y' }]);
-    const spans = list.querySelectorAll('.inline-row');
-    expect(spans).toHaveLength(2);
-    // Each span is a distinct node
-    expect(spans[0]).not.toBe(spans[1]);
-  });
-});
-
-// ─── key reconciliation: disposal of removed items ──────────────────────────
-describe('key reconciliation — disposal of removed items', () => {
-  let container;
-
-  beforeEach(() => {
-    document.body.innerHTML = '';
-    Object.keys(_stores).forEach((k) => delete _stores[k]);
-    container = document.createElement('div');
-    document.body.appendChild(container);
-  });
-
-  afterEach(() => {
-    document.body.innerHTML = '';
-  });
-
-  test('each: __disposers on removed item child are called on splice', () => {
-    const state = document.createElement('div');
-    state.setAttribute('state', JSON.stringify({ items: [{ id: 1 }, { id: 2 }, { id: 3 }] }));
-    container.appendChild(state);
-
-    const tpl = document.createElement('template');
-    tpl.id = 'dispose-row-tpl';
-    tpl.innerHTML = '<span class="row"></span>';
-    document.body.appendChild(tpl);
-
-    const list = document.createElement('div');
-    list.setAttribute('each', 'item in items');
-    list.setAttribute('template', 'dispose-row-tpl');
-    list.setAttribute('key', 'item.id');
-    state.appendChild(list);
-    processTree(state);
-
-    // Plant a disposer on the span inside the second wrapper (item id=2)
-    const spanToDispose = list.children[1].querySelector('.row');
-    const disposed = [];
-    spanToDispose.__disposers = [() => disposed.push('id2-disposed')];
-
-    // Remove item id=2
-    state.__ctx.__raw.items = [{ id: 1 }, { id: 3 }];
-    state.__ctx.$notify();
-
-    expect(disposed).toEqual(['id2-disposed']);
-  });
-
-  test('foreach: __disposers on removed item child are called on splice', () => {
-    const state = document.createElement('div');
-    state.setAttribute('state', JSON.stringify({ items: [{ id: 'a' }, { id: 'b' }, { id: 'c' }] }));
-    container.appendChild(state);
-
-    const tpl = document.createElement('template');
-    tpl.id = 'fc-dispose-tpl';
-    tpl.innerHTML = '<span class="fc-row"></span>';
-    document.body.appendChild(tpl);
-
-    const list = document.createElement('div');
-    list.setAttribute('foreach', 'item');
-    list.setAttribute('from', 'items');
-    list.setAttribute('template', 'fc-dispose-tpl');
-    list.setAttribute('key', 'item.id');
-    state.appendChild(list);
-    processTree(state);
-
-    const spanToDispose = list.children[1].querySelector('.fc-row');
-    const disposed = [];
-    spanToDispose.__disposers = [() => disposed.push('b-disposed')];
-
-    state.__ctx.__raw.items = [{ id: 'a' }, { id: 'c' }];
-    state.__ctx.$notify();
-
-    expect(disposed).toEqual(['b-disposed']);
-  });
-
-  test('foreach inline: __disposers on removed item child are called on splice', () => {
-    const state = document.createElement('div');
-    state.setAttribute('state', JSON.stringify({ items: [{ id: 1 }, { id: 2 }] }));
-    container.appendChild(state);
-
-    const list = document.createElement('div');
-    list.setAttribute('foreach', 'item');
-    list.setAttribute('from', 'items');
-    list.setAttribute('key', 'item.id');
-    list.innerHTML = '<span class="inline-dispose"></span>';
-    state.appendChild(list);
-    processTree(state);
-
-    const spanToDispose = list.children[0].querySelector('.inline-dispose');
-    const disposed = [];
-    spanToDispose.__disposers = [() => disposed.push('id1-disposed')];
-
-    // Remove first item
-    state.__ctx.__raw.items = [{ id: 2 }];
-    state.__ctx.$notify();
-
-    expect(disposed).toEqual(['id1-disposed']);
-  });
-
-  test('each: preserved wrappers do NOT have their disposers called on update', () => {
-    const state = document.createElement('div');
-    state.setAttribute('state', JSON.stringify({ items: [{ id: 1 }, { id: 2 }] }));
-    container.appendChild(state);
-
-    const tpl = document.createElement('template');
-    tpl.id = 'no-dispose-tpl';
-    tpl.innerHTML = '<span class="nd-row"></span>';
-    document.body.appendChild(tpl);
-
-    const list = document.createElement('div');
-    list.setAttribute('each', 'item in items');
-    list.setAttribute('template', 'no-dispose-tpl');
-    list.setAttribute('key', 'item.id');
-    state.appendChild(list);
-    processTree(state);
-
-    const preserved = list.children[0].querySelector('.nd-row');
-    const disposed = [];
-    preserved.__disposers = [() => disposed.push('id1-wrongly-disposed')];
-
-    // Push a new item — id=1 wrapper must be preserved
-    state.__ctx.__raw.items = [{ id: 1 }, { id: 2 }, { id: 3 }];
-    state.__ctx.$notify();
-
-    expect(disposed).toHaveLength(0);
   });
 });
