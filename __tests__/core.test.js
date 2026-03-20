@@ -726,6 +726,20 @@ describe('index.js — config()', () => {
     warnSpy.mockRestore();
     _config.sanitize = true;
   });
+
+  test('does not emit warning when sanitize is explicitly set to true', async () => {
+    const { default: No } = await import('../src/index.js');
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    No.config({ sanitize: true });
+
+    const sanitizeWarningCalled = warnSpy.mock.calls.some(
+      (args) => args.some((a) => typeof a === 'string' && a.includes('sanitize'))
+    );
+    expect(sanitizeWarningCalled).toBe(false);
+
+    warnSpy.mockRestore();
+  });
 });
 
 describe('index.js — config() stores', () => {
