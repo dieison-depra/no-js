@@ -2,12 +2,36 @@
 //  EXPRESSION EVALUATOR
 // ═══════════════════════════════════════════════════════════════════════
 
-import { _stores, _routerInstance, _filters, _warn, _notifyStoreWatchers } from "./globals.js";
+import { _config, _stores, _routerInstance, _filters, _warn, _notifyStoreWatchers } from "./globals.js";
 import { _i18n } from "./i18n.js";
 import { _collectKeys } from "./context.js";
 
-const _exprCache = new Map();
-const _stmtCache = new Map();
+function _makeCache() {
+  const map = new Map();
+  return {
+    get(k) {
+      if (!map.has(k)) return undefined;
+      // Move to end so this entry is the most-recently-used
+      const v = map.get(k);
+      map.delete(k);
+      map.set(k, v);
+      return v;
+    },
+    has(k) { return map.has(k); },
+    set(k, v) {
+      const max = _config.exprCacheSize;
+      if (map.has(k)) {
+        map.delete(k); // refresh position before re-inserting
+      } else if (map.size >= max) {
+        map.delete(map.keys().next().value); // evict LRU (insertion-order first)
+      }
+      map.set(k, v);
+    },
+    get size() { return map.size; },
+  };
+}
+export const _exprCache = _makeCache();
+export const _stmtCache = _makeCache();
 
 // ── Tokenizer ──────────────────────────────────────────────────────────
 
@@ -707,7 +731,26 @@ const _SAFE_GLOBALS = {
   Error, Symbol, console,
 };
 
-const _DENY_GLOBALS = { eval: 1, Function: 1, process: 1, require: 1, importScripts: 1 };
+// Explicit allow-list for browser globals accessible in template expressions.
+// Using an allow-list (opt-in) rather than a deny-list (opt-out) ensures that
+// network and storage APIs — fetch, XMLHttpRequest, localStorage, sessionStorage,
+// WebSocket, indexedDB — are unreachable from template code by default, closing
+// the surface where interpolated external data could trigger unintended requests.
+// window.fetch / window.localStorage remain accessible via the window object.
+const _BROWSER_GLOBALS = new Set([
+  'window', 'document', 'console', 'location', 'history',
+  'navigator', 'screen', 'performance', 'crypto',
+  // setTimeout/setInterval allow deferred execution from template expressions;
+  // necessary for legitimate use cases (e.g. debounce patterns in event handlers).
+  'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval',
+  'requestAnimationFrame', 'cancelAnimationFrame',
+  // alert/confirm/prompt are included for completeness and backward compatibility
+  // (e.g. confirm dialogs before delete). They are discouraged in production UIs —
+  // prefer custom modal components for a better user experience.
+  'alert', 'confirm', 'prompt',
+  'CustomEvent', 'Event', 'URL', 'URLSearchParams',
+  'FormData', 'FileReader', 'Blob', 'Promise',
+]);
 
 function _evalNode(node, scope) {
   try {
@@ -721,8 +764,7 @@ function _evalNode(node, scope) {
       case 'Identifier':
         if (node.name in scope) return scope[node.name];
         if (node.name in _SAFE_GLOBALS) return _SAFE_GLOBALS[node.name];
-        // Allow access to browser globals (window, document, etc.) for backward compat
-        if (typeof globalThis !== 'undefined' && node.name in globalThis && !_DENY_GLOBALS[node.name]) return globalThis[node.name];
+        if (_BROWSER_GLOBALS.has(node.name) && typeof globalThis !== 'undefined') return globalThis[node.name];
         return undefined;
 
       case 'Forbidden':
@@ -1006,8 +1048,7 @@ function _execStmtNode(node, scope) {
       // so error-boundary directives can catch the error
       if (node.type === "CallExpr" && node.callee.type === "Identifier") {
         const name = node.callee.name;
-        if (!(name in scope) && !(name in _SAFE_GLOBALS) &&
-            (typeof globalThis === "undefined" || !(name in globalThis))) {
+        if (!(name in scope) && !(name in _SAFE_GLOBALS) && !_BROWSER_GLOBALS.has(name)) {
           throw new ReferenceError(name + " is not defined");
         }
       }
@@ -1124,25 +1165,17 @@ export function evaluate(expr, ctx) {
     const mainExpr = pipes[0];
     const { keys, vals } = _collectKeys(ctx);
 
-    // Add special variables
-    const specialKeys = [
-      "$store",
-      "$route",
-      "$router",
-      "$i18n",
-      "$refs",
-      "$form",
-    ];
-    for (const sk of specialKeys) {
-      if (!keys.includes(sk)) {
-        keys.push(sk);
-        vals[sk] = ctx[sk];
-      }
-    }
-
-    // Build scope object from keys/vals
+    // Build scope from cache without mutating it
     const scope = {};
     for (let i = 0; i < keys.length; i++) scope[keys[i]] = vals[keys[i]];
+    // Add special variables to scope only (never to the shared cache),
+    // preserving any same-named local context vars already in scope
+    if (!("$store"  in scope)) scope.$store  = _stores;
+    if (!("$route"  in scope)) scope.$route  = _routerInstance?.current;
+    if (!("$router" in scope)) scope.$router = _routerInstance;
+    if (!("$i18n"   in scope)) scope.$i18n   = _i18n;
+    if (!("$refs"   in scope)) scope.$refs   = ctx.$refs;
+    if (!("$form"   in scope)) scope.$form   = ctx.$form || null;
 
     // Parse expression into AST (cached)
     let ast = _exprCache.get(mainExpr);
@@ -1170,25 +1203,16 @@ export function evaluate(expr, ctx) {
 export function _execStatement(expr, ctx, extraVars = {}) {
   try {
     const { keys, vals } = _collectKeys(ctx);
-    // Add special vars
-    const specials = {
-      $store: _stores,
-      $route: _routerInstance?.current,
-      $router: _routerInstance,
-      $i18n: _i18n,
-      $refs: ctx.$refs,
-    };
-    Object.assign(specials, extraVars);
-    for (const [k, v] of Object.entries(specials)) {
-      if (!keys.includes(k)) {
-        keys.push(k);
-        vals[k] = v;
-      }
-    }
 
-    // Build scope
+    // Build scope from cache without mutating it, then add special vars and extraVars
     const scope = {};
     for (let i = 0; i < keys.length; i++) scope[keys[i]] = vals[keys[i]];
+    if (!("$store"  in scope)) scope.$store  = _stores;
+    if (!("$route"  in scope)) scope.$route  = _routerInstance?.current;
+    if (!("$router" in scope)) scope.$router = _routerInstance;
+    if (!("$i18n"   in scope)) scope.$i18n   = _i18n;
+    if (!("$refs"   in scope)) scope.$refs   = ctx.$refs;
+    Object.assign(scope, extraVars);
 
     // Snapshot context chain values for write-back comparison
     const chainKeys = new Set();
@@ -1227,10 +1251,11 @@ export function _execStatement(expr, ctx, extraVars = {}) {
       }
     }
 
-    // Write back new variables created during execution
+    // Write back new variables created during execution.
+    // Skip extraVars keys (e.g. __val, $el, $event) — they are execution-local
+    // and must not be persisted to the reactive context.
     for (const k in scope) {
-      if (k.startsWith("$") || chainKeys.has(k)) continue;
-      if (k in vals) continue;
+      if (k.startsWith("$") || chainKeys.has(k) || k in extraVars) continue;
       ctx.$set(k, scope[k]);
     }
 
@@ -1254,9 +1279,13 @@ export function resolve(path, ctx) {
 }
 
 // Interpolate strings like "/users/{user.id}?q={search}"
+// Note: interpolated values are encoded with encodeURIComponent, which encodes
+// "/" as "%2F". Path segments that intentionally contain "/" must be passed
+// as pre-encoded strings or concatenated outside of {} placeholders.
 export function _interpolate(str, ctx) {
   return str.replace(/\{([^}]+)\}/g, (_, expr) => {
     const val = evaluate(expr.trim(), ctx);
-    return val != null ? val : "";
+    if (val == null) return "";
+    return encodeURIComponent(String(val));
   });
 }
