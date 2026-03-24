@@ -33,6 +33,7 @@
     "test:e2e:report": "npx playwright show-report e2e/playwright-report",
     "test:all": "npm test && npm run test:e2e",
     "bench": "jest --testMatch='**/__benchmarks__/**/*.test.js' --testPathIgnorePatterns='[]'",
+    "bench:playwright": "npx playwright test --config playwright.bench.config.js --reporter=list",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
