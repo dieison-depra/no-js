@@ -34,11 +34,42 @@
 import { test } from "@playwright/test";
 import { readFileSync } from "fs";
 import { resolve } from "path";
+import * as esbuild from "esbuild";
 
 const IIFE_SOURCE = readFileSync(
   resolve(process.cwd(), "dist/iife/no.js"),
   "utf8"
 );
+
+// Build a variant of the IIFE with _zeroOverlapBailout disabled — used only
+// by the bailout-impact describe block to produce an apples-to-apples diff.
+async function buildNoBailoutIIFE(): Promise<string> {
+  const noBailoutPlugin: esbuild.Plugin = {
+    name: "no-bailout",
+    setup(build) {
+      build.onLoad({ filter: /loops\.js$/ }, (args) => {
+        let source = readFileSync(args.path, "utf8");
+        // Replace both calls to _zeroOverlapBailout with a no-op so the
+        // per-item removal loop always runs (pre-PR #25 behaviour).
+        source = source.replace(
+          /\s*\/\/ Zero-overlap bailout[^\n]*\n\s*_zeroOverlapBailout\(keyMap, nextKeySet, el\);/g,
+          ""
+        );
+        return { contents: source, loader: "js" };
+      });
+    },
+  };
+
+  const result = await esbuild.build({
+    entryPoints: [resolve(process.cwd(), "src/cdn.js")],
+    bundle: true,
+    format: "iife",
+    minify: true,
+    write: false,
+    plugins: [noBailoutPlugin],
+  });
+  return result.outputFiles[0].text;
+}
 
 const RUNS = 7;
 const WARMUP = 2;
@@ -89,11 +120,8 @@ function buildScenarios(n) {
 
 // ─── Page setup ───────────────────────────────────────────────────────────────
 
-async function setupPage(page, initialItems) {
-  // Two independent state trees: one keyed, one full-rebuild.
-  // Identical initial data so comparison is fair.
+async function setupPageWithIIFE(page, initialItems, iifeSource: string) {
   const stateJson = JSON.stringify({ items: initialItems });
-
   await page.setContent(`<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
@@ -104,28 +132,25 @@ async function setupPage(page, initialItems) {
       <span class="score" bind="item.score"></span>
     </div>
   </template>
-
-  <!-- Keyed list -->
   <div id="ks" state='${stateJson}'>
     <div id="kl" each="item in items" template="bench-tpl" key="item.id"></div>
   </div>
-
-  <!-- Full-rebuild list (no key attribute) -->
   <div id="rs" state='${stateJson}'>
     <div id="rl" each="item in items" template="bench-tpl"></div>
   </div>
 </body>
 </html>`);
-
-  await page.addScriptTag({ content: IIFE_SOURCE });
-
-  // Wait for both lists to be populated.
+  await page.addScriptTag({ content: iifeSource });
   await page.waitForFunction(
     (n) =>
       document.getElementById("kl")?.children.length === n &&
       document.getElementById("rl")?.children.length === n,
     initialItems.length
   );
+}
+
+async function setupPage(page, initialItems) {
+  await setupPageWithIIFE(page, initialItems, IIFE_SOURCE);
 }
 
 // ─── CDP helpers ─────────────────────────────────────────────────────────────
@@ -292,6 +317,69 @@ test.describe("Keyed reconciliation vs full-rebuild — real browser (Chromium)"
           `  ${r.scenario.padEnd(30)} ${String(r.keyed.median).padStart(10)} ${String(r.rebuild.median).padStart(10)} ${ratio(r.keyed.median, r.rebuild.median).padStart(20)}`
         );
       }
+      console.log(`${"═".repeat(72)}\n`);
+    });
+  }
+});
+
+// ─── Bailout impact: with vs without _zeroOverlapBailout (S5 only) ───────────
+
+test.describe("S5 zero-overlap bailout impact — keyed with vs without PR #25", () => {
+  test.skip(
+    ({ browserName }) => browserName !== "chromium",
+    "CDP metrics require Chromium"
+  );
+
+  let IIFE_NO_BAILOUT = "";
+
+  test.beforeAll(async () => {
+    IIFE_NO_BAILOUT = await buildNoBailoutIIFE();
+  });
+
+  for (const n of SIZES) {
+    test(`n=${n} — S5 replace (zero key overlap)`, async ({ page }) => {
+      test.setTimeout(60_000);
+
+      const before = makeItems(n);
+      const after = makeItems(n, n * 10);
+
+      // ── With bailout (PR #25) ──────────────────────────────────────────────
+      await setupPageWithIIFE(page, before, IIFE_SOURCE);
+      const withSamples = await timeOperation(page, "ks", before, after);
+      const withStats = stats(withSamples);
+
+      // ── Without bailout (pre-PR #25) ──────────────────────────────────────
+      await setupPageWithIIFE(page, before, IIFE_NO_BAILOUT);
+      const withoutSamples = await timeOperation(page, "ks", before, after);
+      const withoutStats = stats(withoutSamples);
+
+      // ── Full-rebuild reference ─────────────────────────────────────────────
+      await setupPageWithIIFE(page, before, IIFE_SOURCE);
+      const rebuildSamples = await timeOperation(page, "rs", before, after);
+      const rebuildStats = stats(rebuildSamples);
+
+      console.log(`\n${"═".repeat(72)}`);
+      console.log(`  S5 zero-overlap bailout impact  (n=${n}, S5 replace, real Chromium)`);
+      console.log(`${"═".repeat(72)}`);
+      console.log(
+        `  ${"Strategy".padEnd(28)} ${"avg ms".padStart(8)} ${"min".padStart(8)} ${"max".padStart(8)} ${"median".padStart(8)}`
+      );
+      console.log(`  ${"-".repeat(56)}`);
+      console.log(
+        `  ${"keyed WITH bailout (PR #25)".padEnd(28)} ${String(withStats.avg).padStart(8)} ${String(withStats.min).padStart(8)} ${String(withStats.max).padStart(8)} ${String(withStats.median).padStart(8)}`
+      );
+      console.log(
+        `  ${"keyed WITHOUT bailout".padEnd(28)} ${String(withoutStats.avg).padStart(8)} ${String(withoutStats.min).padStart(8)} ${String(withoutStats.max).padStart(8)} ${String(withoutStats.median).padStart(8)}`
+      );
+      console.log(
+        `  ${"full-rebuild (reference)".padEnd(28)} ${String(rebuildStats.avg).padStart(8)} ${String(rebuildStats.min).padStart(8)} ${String(rebuildStats.max).padStart(8)} ${String(rebuildStats.median).padStart(8)}`
+      );
+      console.log(`  ${"-".repeat(56)}`);
+
+      const bailoutGain = withoutStats.median / withStats.median;
+      const vsRebuild = withStats.median / rebuildStats.median;
+      console.log(`  Bailout gain (without/with):    ${bailoutGain.toFixed(2)}x faster`);
+      console.log(`  Keyed+bailout vs rebuild:       ${ratio(withStats.median, rebuildStats.median)}`);
       console.log(`${"═".repeat(72)}\n`);
     });
   }
