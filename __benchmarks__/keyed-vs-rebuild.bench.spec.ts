@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-//  keyed-vs-rebuild.bench.spec.js
+//  keyed-vs-rebuild.bench.spec.ts
 //
 //  Playwright/Chromium CDP benchmark: keyed reconciliation vs full-rebuild
 //  in a real browser with layout, JIT, and processTree() cost included.
@@ -29,6 +29,11 @@
 //    - ScriptDuration delta (CDP Performance.getMetrics)
 //    - DOM Nodes delta (CDP)
 //    - JS heap delta (CDP)
+//
+//  Overlap-threshold sweep (third describe block):
+//    Measures keyed vs full-rebuild at overlap fractions 0%→50% to find the
+//    empirical break-even fraction for the Opt 5 overlap-threshold bailout.
+//    See analysis_keyed_recon.md § Optimization 5 for context.
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { test } from "@playwright/test";
@@ -83,6 +88,27 @@ function makeItems(n, offset = 0) {
     name: `item-${offset + i + 1}`,
     score: ((offset + i + 1) * 7) % 100,
   }));
+}
+
+// ─── Overlap scenario builder ─────────────────────────────────────────────────
+
+// Builds a before/after pair where exactly `Math.round(overlapFraction * n)`
+// keys from `before` survive in `after`. Surviving items are updated (score+1)
+// so the keyed path exercises the Object.assign+$notify update branch, not just
+// a no-op. New items occupy the tail slots with IDs starting at n*100 to
+// guarantee no accidental ID collision.
+//
+// The after list is NOT shuffled: survivors are at the front, new items at the
+// end. This deliberately avoids triggering any prefix-sync optimization (which
+// does not exist yet) so the benchmark measures the raw reconciliation cost.
+function makeOverlapScenario(n: number, overlapFraction: number) {
+  const before = makeItems(n);
+  const survivorCount = Math.round(overlapFraction * n);
+  const after = [
+    ...before.slice(0, survivorCount).map((item) => ({ ...item, score: item.score + 1 })),
+    ...makeItems(n - survivorCount, n * 100),
+  ];
+  return { before, after, survivorCount };
 }
 
 // ─── Scenario definitions ─────────────────────────────────────────────────────
@@ -381,6 +407,125 @@ test.describe("S5 zero-overlap bailout impact — keyed with vs without PR #25",
       console.log(`  Bailout gain (without/with):    ${bailoutGain.toFixed(2)}x faster`);
       console.log(`  Keyed+bailout vs rebuild:       ${ratio(withStats.median, rebuildStats.median)}`);
       console.log(`${"═".repeat(72)}\n`);
+    });
+  }
+});
+
+// ─── Overlap-threshold sweep: empirical break-even fraction for Opt 5 ─────────
+//
+// Sweeps key-overlap fractions from 0% to 50% and measures:
+//   - keyed (current, includes zero-overlap bailout from _zeroOverlapBailout)
+//   - keyed-no-bailout (esbuild variant with bailout calls stripped)
+//   - full-rebuild (no `key` attribute)
+//
+// Goal: find the empirical overlap fraction at which keyed breaks even with
+// full-rebuild, and assess whether the zero-overlap bailout helps at low fractions.
+// This data drives the threshold value for Opt 5 in analysis_keyed_recon.md.
+
+test.describe("Overlap-threshold sweep — empirical break-even for Opt 5", () => {
+  test.skip(
+    ({ browserName }) => browserName !== "chromium",
+    "CDP metrics require Chromium"
+  );
+
+  const OVERLAP_FRACTIONS = [0, 0.05, 0.10, 0.15, 0.20, 0.30, 0.50];
+
+  let IIFE_NO_BAILOUT = "";
+
+  test.beforeAll(async () => {
+    IIFE_NO_BAILOUT = await buildNoBailoutIIFE();
+  });
+
+  for (const n of SIZES) {
+    test(`n=${n} — overlap sweep`, async ({ page }) => {
+      test.setTimeout(300_000);
+
+      console.log(`\n${"═".repeat(80)}`);
+      console.log(`  Overlap-threshold sweep  (n=${n}, real Chromium)`);
+      console.log(`  Goal: find break-even fraction where keyed == full-rebuild`);
+      console.log(`${"═".repeat(80)}`);
+      console.log(
+        `  ${"overlap".padEnd(10)} ${"survivors".padEnd(10)} ${"keyed".padStart(10)} ${"no-bail".padStart(10)} ${"rebuild".padStart(10)} ${"k/r ratio".padStart(14)} ${"verdict".padStart(18)}`
+      );
+      console.log(`  ${"-".repeat(76)}`);
+
+      const results: Array<{
+        fraction: number;
+        survivorCount: number;
+        keyed: ReturnType<typeof stats>;
+        noBailout: ReturnType<typeof stats>;
+        rebuild: ReturnType<typeof stats>;
+      }> = [];
+
+      for (const fraction of OVERLAP_FRACTIONS) {
+        const { before, after, survivorCount } = makeOverlapScenario(n, fraction);
+
+        // ── Keyed with current bailout ─────────────────────────────────────
+        await setupPageWithIIFE(page, before, IIFE_SOURCE);
+        const keyedSamples = await timeOperation(page, "ks", before, after);
+        const keyedStats = stats(keyedSamples);
+
+        // ── Keyed without zero-overlap bailout ────────────────────────────
+        await setupPageWithIIFE(page, before, IIFE_NO_BAILOUT);
+        const noBailoutSamples = await timeOperation(page, "ks", before, after);
+        const noBailoutStats = stats(noBailoutSamples);
+
+        // ── Full-rebuild reference ─────────────────────────────────────────
+        await setupPageWithIIFE(page, before, IIFE_SOURCE);
+        const rebuildSamples = await timeOperation(page, "rs", before, after);
+        const rebuildStats = stats(rebuildSamples);
+
+        results.push({
+          fraction,
+          survivorCount,
+          keyed: keyedStats,
+          noBailout: noBailoutStats,
+          rebuild: rebuildStats,
+        });
+
+        const pct = `${Math.round(fraction * 100)}%`;
+        const r = rebuildStats.median > 0 ? keyedStats.median / rebuildStats.median : 0;
+        const verdict = r <= 1.0 ? "✓ keyed faster" : "△ rebuild faster";
+
+        console.log(
+          `  ${pct.padEnd(10)} ${String(survivorCount).padEnd(10)} ${String(keyedStats.median).padStart(10)} ${String(noBailoutStats.median).padStart(10)} ${String(rebuildStats.median).padStart(10)} ${(r.toFixed(2) + "x").padStart(14)} ${verdict.padStart(18)}`
+        );
+      }
+
+      // ── Break-even analysis ──────────────────────────────────────────────
+      console.log(`\n  BREAK-EVEN ANALYSIS (n=${n}, median ms)`);
+      console.log(`  ${"-".repeat(76)}`);
+
+      // Find the first fraction where keyed beats rebuild.
+      const breakEven = results.find((r) => r.keyed.median <= r.rebuild.median);
+      if (breakEven) {
+        console.log(
+          `  Break-even at overlap=${Math.round(breakEven.fraction * 100)}% ` +
+          `(${breakEven.survivorCount}/${n} survivors survive)`
+        );
+      } else {
+        console.log(`  No break-even found in tested range — keyed slower than rebuild at all overlap levels`);
+      }
+
+      // Bailout delta: at each fraction, does the bailout help?
+      console.log(`\n  BAILOUT IMPACT (keyed-no-bailout vs keyed-with-bailout, median ms)`);
+      console.log(`  ${"-".repeat(76)}`);
+      console.log(
+        `  ${"overlap".padEnd(10)} ${"no-bail".padStart(10)} ${"with-bail".padStart(12)} ${"gain".padStart(12)} ${"helps?".padStart(10)}`
+      );
+      console.log(`  ${"-".repeat(58)}`);
+      for (const r of results) {
+        const pct = `${Math.round(r.fraction * 100)}%`;
+        const gain = r.noBailout.median > 0
+          ? r.noBailout.median / r.keyed.median
+          : 1;
+        const helps = gain >= 1.05 ? "yes" : gain <= 0.95 ? "hurts" : "neutral";
+        console.log(
+          `  ${pct.padEnd(10)} ${String(r.noBailout.median).padStart(10)} ${String(r.keyed.median).padStart(12)} ${(gain.toFixed(2) + "x").padStart(12)} ${helps.padStart(10)}`
+        );
+      }
+
+      console.log(`${"═".repeat(80)}\n`);
     });
   }
 });
