@@ -3048,7 +3048,7 @@ describe('key reconciliation — disposal of removed items', () => {
   });
 });
 
-describe('key reconciliation — zero-overlap bailout', () => {
+describe('key reconciliation — zero-overlap and partial-overlap behaviour', () => {
   let container;
 
   beforeEach(() => {
@@ -3097,7 +3097,7 @@ describe('key reconciliation — zero-overlap bailout', () => {
     return { state, list };
   }
 
-  test('each: zero-overlap replaces all items', async () => {
+  test('each: zero-overlap replaces all items (new keys)', async () => {
     const { state } = buildEach([{ id: 1 }, { id: 2 }]);
     await Promise.resolve();
     state.__ctx.__raw.items = [{ id: 3 }, { id: 4 }];
@@ -3107,12 +3107,15 @@ describe('key reconciliation — zero-overlap bailout', () => {
     expect(rows.length).toBe(2);
   });
 
-  test('each: calls disposers on removed items during bailout', async () => {
+  test('each: calls disposers on removed items in zero-overlap update', async () => {
     const { state, list } = buildEach([{ id: 1 }, { id: 2 }]);
     await Promise.resolve();
     const disposed = [];
-    for (const child of list.children) {
-      child.__disposers = [() => disposed.push(child)];
+    // Set disposers on the inner span (first child of each wrapper),
+    // since _disposeChildren(wrapper) walks wrapper's subtree, not wrapper itself.
+    for (const wrapper of list.children) {
+      const inner = wrapper.firstElementChild;
+      if (inner) inner.__disposers = [() => disposed.push(inner)];
     }
     state.__ctx.__raw.items = [{ id: 3 }];
     state.__ctx.$notify();
@@ -3120,19 +3123,19 @@ describe('key reconciliation — zero-overlap bailout', () => {
     expect(disposed.length).toBeGreaterThan(0);
   });
 
-  test('each: partial overlap skips bailout', async () => {
+  test('each: partial overlap preserves existing wrapper nodes', async () => {
     const { state, list } = buildEach([{ id: 1 }, { id: 2 }]);
     await Promise.resolve();
     const originalWrapper = list.children[0];
     state.__ctx.__raw.items = [{ id: 1 }, { id: 3 }];
     state.__ctx.$notify();
     await Promise.resolve();
-    // id:1 wrapper is reused — not removed via bailout
+    // id:1 wrapper is reused, not removed — partial overlap preserves existing nodes
     expect(list.children[0]).toBe(originalWrapper);
     expect(list.children.length).toBe(2);
   });
 
-  test('each: correct $index and $count after bailout', async () => {
+  test('each: correct $index and $count after zero-overlap update', async () => {
     const { state } = buildEach([{ id: 1 }, { id: 2 }]);
     await Promise.resolve();
     state.__ctx.__raw.items = [{ id: 3 }, { id: 4 }, { id: 5 }];
@@ -3141,7 +3144,7 @@ describe('key reconciliation — zero-overlap bailout', () => {
     expect(container.querySelectorAll('.row').length).toBe(3);
   });
 
-  test('foreach: zero-overlap replaces all items', async () => {
+  test('foreach: zero-overlap replaces all items (new keys)', async () => {
     const { state } = buildForeach([{ id: 1 }, { id: 2 }]);
     await Promise.resolve();
     state.__ctx.__raw.items = [{ id: 3 }, { id: 4 }];
@@ -3151,12 +3154,15 @@ describe('key reconciliation — zero-overlap bailout', () => {
     expect(rows.length).toBe(2);
   });
 
-  test('foreach: calls disposers on removed items during bailout', async () => {
+  test('foreach: calls disposers on removed items in zero-overlap update', async () => {
     const { state, list } = buildForeach([{ id: 1 }, { id: 2 }]);
     await Promise.resolve();
     const disposed = [];
-    for (const child of list.children) {
-      child.__disposers = [() => disposed.push(child)];
+    // Set disposers on the inner span (first child of each wrapper),
+    // since _disposeChildren(wrapper) walks wrapper's subtree, not wrapper itself.
+    for (const wrapper of list.children) {
+      const inner = wrapper.firstElementChild;
+      if (inner) inner.__disposers = [() => disposed.push(inner)];
     }
     state.__ctx.__raw.items = [{ id: 3 }];
     state.__ctx.$notify();
@@ -3164,7 +3170,7 @@ describe('key reconciliation — zero-overlap bailout', () => {
     expect(disposed.length).toBeGreaterThan(0);
   });
 
-  test('foreach: partial overlap skips bailout', async () => {
+  test('foreach: partial overlap preserves existing wrapper nodes', async () => {
     const { state, list } = buildForeach([{ id: 1 }, { id: 2 }]);
     await Promise.resolve();
     const originalWrapper = list.children[0];
@@ -3175,7 +3181,7 @@ describe('key reconciliation — zero-overlap bailout', () => {
     expect(list.children.length).toBe(2);
   });
 
-  test('foreach: correct item count after bailout', async () => {
+  test('foreach: correct item count after zero-overlap update', async () => {
     const { state } = buildForeach([{ id: 1 }, { id: 2 }]);
     await Promise.resolve();
     state.__ctx.__raw.items = [{ id: 3 }, { id: 4 }, { id: 5 }];

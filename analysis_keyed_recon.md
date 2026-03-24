@@ -52,13 +52,90 @@ discarded as JIT warmup), median wall-clock time (`performance.now()` inside bro
 | S4 update (same keys, new data) | 0.22 | 1.93 | **0.11× ✓ keyed faster** |
 | S5 replace (zero key overlap) | 2.71 | 1.71 | **1.58× △ rebuild faster** |
 
-### Zero-overlap bailout impact (S5 only, PR #25 — now closed)
+### Zero-overlap bailout impact (S5 only, PR #25 — closed, code reverted)
 
 | n | with bailout | without bailout | full-rebuild | bailout gain | keyed+bailout vs rebuild |
 |---|---|---|---|---|---|
 | 50 | 0.41 | 0.39 | 0.35 | 0.95× (marginal) | **1.17× △ rebuild faster** |
 | 200 | 1.21 | 1.56 | 0.93 | **1.29× faster** | **1.30× △ rebuild faster** |
 | 500 | 2.71 | 2.74 | 1.71 | 1.01× (neutral) | **1.58× △ rebuild faster** |
+
+**Note**: the overlap-threshold sweep (below) revealed that `_zeroOverlapBailout` causes a
+**73% regression at n=50** (2.6ms with bailout vs 1.5ms without). The bailout has been
+removed from the source. See "Overlap-threshold sweep results" section.
+
+---
+
+## Overlap-Threshold Sweep Results (Chromium, CDP)
+
+Benchmark: `npm run bench:playwright` — third describe block in `keyed-vs-rebuild.bench.spec.ts`.
+Overlap fraction = fraction of old items whose key survives in the new list.
+Survivors are updated (score+1); new items have offset IDs (n×100) to guarantee no collision.
+
+### n = 50
+
+| overlap | survivors | keyed (ms) | no-bail (ms) | rebuild (ms) | k/r ratio |
+|---|---|---|---|---|---|
+| 0% | 0 | **2.6** | 1.5 | 1.4 | 1.86× △ |
+| 5% | 3 | 1.7 | 1.4 | 1.3 | 1.31× △ |
+| 10% | 5 | 1.7 | 1.6 | 1.3 | 1.31× △ |
+| 15% | 8 | 1.7 | 1.5 | 1.5 | 1.13× △ |
+| 20% | 10 | 1.5 | 1.5 | 1.2 | 1.25× △ |
+| 30% | 15 | 1.5 | 1.4 | 1.3 | 1.15× △ |
+| 50% | 25 | 1.2 | 1.2 | 1.3 | **0.92× ✓** |
+
+**Break-even at n=50**: ~50% overlap. Bailout hurts throughout (worst: 0.58× at 0%).
+
+### n = 200
+
+| overlap | survivors | keyed (ms) | no-bail (ms) | rebuild (ms) | k/r ratio |
+|---|---|---|---|---|---|
+| 0% | 0 | 5.7 | 6.2 | 5.2 | 1.10× △ |
+| 5% | 10 | 5.5 | 6.0 | 5.1 | 1.08× △ |
+| 10% | 20 | 5.5 | 6.0 | 5.0 | 1.10× △ |
+| 15% | 30 | 5.9 | 5.9 | 4.7 | 1.26× △ |
+| 20% | 40 | 4.8 | 4.9 | 5.4 | **0.89× ✓** |
+| 30% | 60 | 4.3 | 4.5 | 4.9 | **0.88× ✓** |
+| 50% | 100 | 6.8* | 3.8 | 5.0 | 1.36× △ |
+
+\* 50% row is an anomaly — keyed 6.8ms is a JIT/GC outlier (other rows average ~4-5ms). The
+reorder phase at 50% overlap (100 existing + 100 new items) should be similar to 30%.
+Bailout helps at 0–10% (+9%), neutral at 15–30%, anomalous at 50%.
+
+**Break-even at n=200**: ~20% overlap.
+
+### n = 500
+
+| overlap | survivors | keyed (ms) | no-bail (ms) | rebuild (ms) | k/r ratio |
+|---|---|---|---|---|---|
+| 0% | 0 | 15.9 | 16.2 | 12.7 | 1.25× △ |
+| 5% | 25 | 14.6 | 13.0 | 11.1 | 1.32× △ |
+| 10% | 50 | 13.8 | 12.8 | 13.0 | 1.06× △ |
+| 15% | 75 | 11.9 | 11.7 | 11.5 | 1.03× △ |
+| 20% | 100 | 12.7 | 11.3 | 13.7 | **0.93× ✓** |
+| 30% | 150 | 11.4 | 11.3 | 13.4 | **0.85× ✓** |
+| 50% | 250 | 9.2 | 8.9 | 11.3 | **0.81× ✓** |
+
+Bailout is neutral throughout at n=500. No-bailout is slightly faster at 5–20% (noise range).
+
+**Break-even at n=500**: ~20% overlap.
+
+### Summary
+
+| n | break-even overlap | bailout at 0% | bailout at 10% | bailout at 50% |
+|---|---|---|---|---|
+| 50 | ~50% | **hurts** (0.58×) | hurts (0.94×) | neutral |
+| 200 | ~20% | helps (1.09×) | helps (1.09×) | **hurts** (0.56×) |
+| 500 | ~20% | neutral (1.02×) | hurts (0.93×) | neutral (0.97×) |
+
+**Key finding**: `_zeroOverlapBailout` is net harmful at n=50 because it calls `_disposeChildren(el)`
+from the parent (traversing all 50 wrapper × 2 span = 100 nodes) while the per-item path calls
+`_disposeChildren(wrapper)` per item (2 nodes each). The parent sweep has a higher setup cost
+that overwhelms the saving from avoiding 50 individual `wrapper.remove()` calls.
+
+**Consequence for Opt 5**: any overlap-threshold bailout must be guarded by a minimum list
+size (e.g., `if (keyMap.size < 100) return false`). Below ~100 items, the bulk-clear cost
+dominates and the bailout is never beneficial regardless of overlap fraction.
 
 ---
 
@@ -198,18 +275,23 @@ layout-querying property is read. Not recommended — no benefit, sometimes marg
 
 ## Proposed Optimizations (updated)
 
-### Optimization 1 — Zero-overlap bailout (S5, partial fix) — PR #25, now closed
+### Optimization 1 — Zero-overlap bailout — PR #25 closed, code reverted
 
-Implemented as `_zeroOverlapBailout()` in `src/directives/loops.js`. Detects when no old
-key survives in the new list, then bulk-clears via `_disposeChildren(el) + el.innerHTML="" +
-keyMap.clear()` instead of n individual `wrapper.remove()` calls.
+Implemented as `_zeroOverlapBailout()` in `src/directives/loops.js`. Replaced n individual
+`wrapper.remove()` calls with a single `_disposeChildren(el) + el.innerHTML="" + keyMap.clear()`.
 
-**Real-browser benchmark result**: helps at n=200 (+29%), neutral at n=50 and n=500.
-Keyed still loses to full-rebuild in S5 at all sizes, because key evaluation overhead
-(not just removal overhead) is the dominant cost.
+**Initial benchmark result (S5 only)**: appeared to help at n=200 (+29%), neutral elsewhere.
 
-**Status**: PR #25 closed — insufficient evidence of utility. May be reopened if Opt 5
-proves worth pursuing as a prerequisite.
+**Overlap sweep result (definitive)**: the bailout causes a **73% regression at n=50** — at
+zero overlap, keyed WITH bailout takes 2.6ms vs 1.5ms without. The root cause is that
+`_disposeChildren(el)` recursively visits all children from the parent, while the
+pre-bailout path called `_disposeChildren(wrapper)` per item (visiting only 2 child spans).
+The parent-level traversal has a higher constant factor at small n, where the total node
+count is modest enough that per-item removal is cheaper than the recursive parent sweep.
+
+The code has been removed from `src/directives/loops.js`. PR #25 remains closed.
+
+**Status**: reverted from source.
 
 ### Optimization 2 — Common prefix/suffix sync
 
@@ -335,17 +417,24 @@ below the discard-benefit boundary of ~13%.
 
 **Blocking concerns before implementation:**
 
-1. **Animation regression**: if `animate-enter` is set, surviving nodes cleared by the bailout
+1. **Minimum list size guard required**: the overlap sweep shows the bailout is net harmful
+   at n=50 regardless of overlap fraction. Any implementation must be guarded by:
+   ```js
+   if (keyMap.size < 100) return false;  // bulk-clear overhead dominates at small n
+   ```
+   The exact threshold (100 vs 50 vs 150) should be validated by the benchmark sweep.
+
+2. **Animation regression**: if `animate-enter` is set, surviving nodes cleared by the bailout
    will trigger enter animations when recreated, even though the user perceives them as existing.
    Requires either a flag to suppress enter animation for would-be-survivors, or explicit
    documentation of the limitation. This is a **visible regression** for animated lists.
 
-2. **State preservation contract broken**: the keyed algorithm's implicit contract is that
+3. **State preservation contract broken**: the keyed algorithm's implicit contract is that
    nodes with surviving keys are not destroyed — they preserve `<input>` focus, video playback
    state, scroll position. The threshold bailout breaks this silently for nodes in the 0–10%
    overlap range. Must be explicitly documented if implemented.
 
-3. **Threshold is not template-aware**: break-even fraction depends on P/K ratio, which
+4. **Threshold is not template-aware**: break-even fraction depends on P/K ratio, which
    varies with template complexity. A conservative threshold of 10% mitigates this but does
    not eliminate the risk of regressing simple templates where P is closer to K.
 
@@ -360,11 +449,15 @@ removal, create, and reorder phases. Restructuring to evaluate keys incrementall
 bailing would require splitting `reconcileItems` into two phases (probe + commit), adding
 significant complexity for K savings that are at most 6% of total cost. Not recommended.
 
-**Status**: hypothesis — do not implement without:
-1. A benchmark sweep at overlap = 0%, 10%, 20%, 30%, 50% at n=50/200/500 confirming the
-   threshold value (extend `__benchmarks__/keyed-vs-rebuild.bench.spec.ts`)
-2. A policy decision on animation-enter behavior for bailout-cleared survivors
-3. Documentation of the state-preservation contract break in `docs/md/loops.md`
+**Status**: benchmark sweep complete (see "Overlap-Threshold Sweep Results" above).
+Key findings from sweep:
+- Break-even is **~20% overlap for n≥200**, ~50% for n=50
+- Current `_zeroOverlapBailout` **hurts at n=50** (73% slower) → removed from source
+- Any threshold bailout must include a **minimum size guard** (`keyMap.size >= 100`)
+
+Still blocked on:
+1. A policy decision on animation-enter behavior for bailout-cleared survivors
+2. Documentation of the state-preservation contract break in `docs/md/loops.md`
 
 ---
 
@@ -380,30 +473,30 @@ significant complexity for K savings that are at most 6% of total cost. Not reco
 
 ## Recommended Next Steps
 
-1. **Document S5 as a semantic anti-pattern** in `docs/md/loops.md` — prerequisite for
-   everything else. Users replacing all items with new IDs should not use `key`. Add a
-   guidance table row: "Replace entire list with new IDs → omit `key`."
+1. **Remove `_zeroOverlapBailout` from source** (already done) — the overlap sweep proves
+   it causes a 73% regression at n=50. No bailout at all is strictly better at small lists.
 
-2. **Decide the animation-enter policy** for Opt 5 before any code is written.
-   Option A: suppress enter animation for would-be-survivors cleared by the bailout (requires
-   passing a flag or a survivor-set to the create phase). Option B: accept that enter
-   animation fires for all recreated nodes and document it. Option A is less surprising but
-   more complex; Option B ships faster.
+2. **Document S5 as a semantic anti-pattern** in `docs/md/loops.md`. Users who replace all
+   items with new IDs should omit `key` — it adds overhead with no benefit. Add a guidance
+   table row: "Replace entire list with new IDs → omit `key`."
 
-3. **Run a threshold sweep benchmark** (extend `__benchmarks__/keyed-vs-rebuild.bench.spec.ts`)
-   at overlap = 0%, 5%, 10%, 15%, 20%, 30%, 50% × n = 50, 200, 500 × threshold = 0.05, 0.10,
-   0.15, 0.20. Confirm the empirical break-even fraction and validate that threshold = 0.10
-   beats full-rebuild in the sub-13% range without regressing S1–S4 by more than 5%.
+3. **Opt 5 prerequisites before any code**:
+   - Decide the animation-enter policy for bailout-cleared survivors (Option A: suppress
+     animation for would-be-survivors; Option B: document that enter animation fires for
+     all recreated nodes). Option A is correct but complex; Option B ships faster.
+   - Document the state-preservation contract break (focus, scroll, video state) in
+     `docs/md/loops.md`.
+   - Extend the benchmark sweep to also vary the minimum-size guard (50, 100, 150) to
+     find the correct `keyMap.size` floor below which the bailout never fires.
 
-4. **Implement Opt 5** only if the benchmark sweep produces clear evidence. Use threshold
-   = 0.10 with the early-exit scan. Apply to `reconcileItems` (each) first; port to
-   `reconcileForeachItems` (foreach) as a follow-up after validation.
+4. **Implement Opt 5** with threshold = 0.10 + minimum size guard of `keyMap.size >= 100`.
+   Use the early-exit scan. Apply to `reconcileItems` (each) first; port to
+   `reconcileForeachItems` (foreach) after validation.
 
-5. **Implement Opt 2** (prefix/suffix sync) after Opt 5 is resolved. Highest-value
-   improvement for common real-world append/prepend/update patterns.
+5. **Implement Opt 2** (prefix/suffix sync) — highest-value improvement for append/prepend
+   patterns, independent of the S5 work.
 
-6. **Do not implement Opt 3 or Opt 4** — real-browser evidence shows S2 is not a problem
-   in production. LIS adds O(n log n) complexity with no measurable benefit.
+6. **Do not implement Opt 3 or Opt 4** — S2 is not a real-browser problem.
 
 ### Key algebraic result to remember
 
