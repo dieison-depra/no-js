@@ -243,41 +243,128 @@ Deprioritized together with Opt 3 (LIS is a prerequisite). S2 is not a problem i
 
 **Status**: deprioritized indefinitely.
 
-### Optimization 5 — Overlap-threshold bailout (NEW — fixes S5 for partial replacements)
+### Optimization 5 — Overlap-threshold bailout (S5 partial fix, hypothesis)
 
 Generalization of Opt 1. Instead of only bailing out when overlap = 0, bail out when the
-surviving key fraction falls below a threshold (e.g., 20%):
+surviving key fraction falls below a threshold (e.g., 10–20%):
 
 ```js
-function _overlapThresholdBailout(keyMap, nextKeySet, el, threshold = 0.20) {
+function _overlapThresholdBailout(keyMap, nextKeySet, el, threshold = 0.10) {
   if (keyMap.size === 0) return false;
+  const survivorLimit = Math.floor(threshold * keyMap.size);
   let survivors = 0;
   for (const key of keyMap.keys()) {
-    if (nextKeySet.has(key)) survivors++;
+    if (nextKeySet.has(key)) {
+      survivors++;
+      if (survivors > survivorLimit) return false; // early exit: enough survivors, no bailout
+    }
   }
-  const fraction = survivors / keyMap.size;
-  if (fraction >= threshold) return false;
-  // Very few keys survive — full rebuild is cheaper than processing individually.
   _disposeChildren(el);
   el.innerHTML = "";
   keyMap.clear();
-  // Caller must rebuild the missing entries; survivors that were cleared will be
-  // recreated in the create phase (keyMap is now empty).
   return true;
 }
 ```
 
-**Tradeoffs vs Opt 1:**
-- Covers partial replacements (e.g., loading a new page of results with a few ID collisions)
-- Discards surviving nodes even when some keys match — those nodes must be recreated
-- Threshold choice: too high → discards nodes that could be reused; too low → doesn't help
-- **Requires benchmark validation before implementation** — threshold sensitive to `processTree` cost vs
-  key-evaluation cost at each list size
+**Cost model (all costs in units of P = one processTree() call):**
 
-**Open question**: What threshold gives the best median across S5 variants at realistic sizes?
-Needs a dedicated benchmark sweep (e.g., overlap = 0%, 10%, 20%, 30%, 50%) before any code is written.
+Define: K = key evaluation, P = processTree, U = Object.assign+$notify update, R = one
+wrapper.remove(), C = bulk clear (innerHTML=""), I = insertBefore, A = cloneNode+createElement.
 
-**Status**: hypothesis only — do not implement without benchmark evidence.
+From S4 benchmark data (pure-update scenario), calibrating per-item costs at n=500:
+- P ≈ 0.00386ms/item (dominant cost)
+- K ≈ 0.03–0.06 × P (expression evaluator with LRU cache warmup)
+- U ≈ 0.04 × P
+- R ≈ 0.15 × P, I ≈ 0.05 × P, A ≈ 0.05 × P
+
+**Break-even fraction (algebraic):**
+
+Keyed path (n_old = n = list size, s = survivors):
+
+    Cost_keyed = n×K + (n-s)×R + (n-s)×(A+P) + s×U + n×I
+
+Full-rebuild:
+
+    Cost_rebuild = C + n×(A+P)
+
+Setting equal and solving for f = s/n:
+
+    f_breakeven ≈ (K + R + I) / (R + A + P - U)
+
+Plugging in approximate ratios:
+
+    f_breakeven ≈ (0.05 + 0.15 + 0.05) / (0.15 + 0.05 + 1 - 0.04) ≈ 0.25 / 1.16 ≈ **0.22–0.26**
+
+Keyed wins only when more than ~24% of items have a surviving key. Below that, full-rebuild
+is cheaper because it skips the O(n) key evaluation pass and the per-item insertBefore reorder.
+
+**What the threshold actually buys:**
+
+The bailout replaces (n - s) × R (individual removes) with C (one bulk clear). This is
+always beneficial for dying nodes. However, it also discards s surviving nodes that would
+have been updated cheaply at cost s × U. Those survivors must be recreated at cost s × P.
+The net effect of discarding s survivors:
+
+    extra cost = s × (P - U) ≈ s × 0.96 × P
+
+The bulk-clear saving is (n - s) × R ≈ (n - s) × 0.15 × P.
+
+Net gain from bailout vs no-bailout:
+
+    (n - s) × 0.15P - s × 0.96P - C_fixed
+
+This is only net positive when (n - s) × 0.15 > s × 0.96, i.e., when:
+
+    s/n < 0.15 / (0.15 + 0.96) ≈ **0.135**
+
+So the threshold must be below ~13% to avoid making things worse by discarding survivors.
+At the proposed 20% threshold, the bailout is net harmful for the survivors at that fraction.
+A conservative threshold of **10% (0.10)** stays safely below the break-even of ~24% and
+below the discard-benefit boundary of ~13%.
+
+**Partial overlap scenarios at n=200:**
+
+| Overlap | Survivors | keyed processTree | rebuild processTree | Keyed wins? |
+|---|---|---|---|---|
+| 0% (S5) | 0 | 200 | 200 | No (extra K+I overhead) |
+| 10% | 20 | 180 | 200 | No (~1.4ms vs 0.93ms) |
+| 20% | 40 | 160 | 200 | No (~1.1ms vs 0.93ms, near break-even) |
+| 26% | 52 | 148 | 200 | Break-even (~0.93ms) |
+| 30% | 60 | 140 | 200 | Yes (~0.85ms) |
+| 50% | 100 | 100 | 200 | Yes (clearly, ~0.50ms) |
+
+**Blocking concerns before implementation:**
+
+1. **Animation regression**: if `animate-enter` is set, surviving nodes cleared by the bailout
+   will trigger enter animations when recreated, even though the user perceives them as existing.
+   Requires either a flag to suppress enter animation for would-be-survivors, or explicit
+   documentation of the limitation. This is a **visible regression** for animated lists.
+
+2. **State preservation contract broken**: the keyed algorithm's implicit contract is that
+   nodes with surviving keys are not destroyed — they preserve `<input>` focus, video playback
+   state, scroll position. The threshold bailout breaks this silently for nodes in the 0–10%
+   overlap range. Must be explicitly documented if implemented.
+
+3. **Threshold is not template-aware**: break-even fraction depends on P/K ratio, which
+   varies with template complexity. A conservative threshold of 10% mitigates this but does
+   not eliminate the risk of regressing simple templates where P is closer to K.
+
+**Early-exit scan**: the proposed implementation already includes early exit at `survivors > survivorLimit`.
+For above-threshold overlap, the scan stops after approximately `threshold / f × n` iterations
+instead of n. No benefit for S5 (zero overlap requires full scan), but reduces overhead for
+cases just above the threshold boundary.
+
+**Architectural constraint on pre-bailout key evaluation**: key evaluation (building `newOrder`
+and `nextKeySet`) must happen before the bailout check because both are required by the
+removal, create, and reorder phases. Restructuring to evaluate keys incrementally before
+bailing would require splitting `reconcileItems` into two phases (probe + commit), adding
+significant complexity for K savings that are at most 6% of total cost. Not recommended.
+
+**Status**: hypothesis — do not implement without:
+1. A benchmark sweep at overlap = 0%, 10%, 20%, 30%, 50% at n=50/200/500 confirming the
+   threshold value (extend `__benchmarks__/keyed-vs-rebuild.bench.spec.ts`)
+2. A policy decision on animation-enter behavior for bailout-cleared survivors
+3. Documentation of the state-preservation contract break in `docs/md/loops.md`
 
 ---
 
@@ -285,26 +372,47 @@ Needs a dedicated benchmark sweep (e.g., overlap = 0%, 10%, 20%, 30%, 50%) befor
 
 | Optimization | Effort | S5 gain | S2 gain | Risk | Status |
 |---|---|---|---|---|---|
-| Zero-overlap bailout (Opt 1) | Low | Partial (n=200) | — | Very low | Closed (PR #25) |
+| Zero-overlap bailout (Opt 1) | Low | Partial (n=200 only) | — | Very low | Closed (PR #25) |
 | Prefix/suffix sync (Opt 2) | Medium | — | Medium (partial sort) | Low | Candidate |
 | LIS minimal moves (Opt 3) | High | — | None (real browser) | Medium | Deprioritized |
 | LIS + threshold bailout (Opt 4) | Low (after Opt 3) | — | None (real browser) | Medium | Deprioritized |
-| Overlap-threshold bailout (Opt 5) | Medium | Potentially high | — | Medium | Hypothesis only |
+| Overlap-threshold bailout (Opt 5) | Medium | Partial (< 13% overlap) | — | Medium | Hypothesis — blocked on benchmark sweep + animation policy |
 
 ## Recommended Next Steps
 
-1. **Document S5 as a semantic anti-pattern** in `docs/md/loops.md`: users replacing all
-   items with new IDs should not use `key` — it adds overhead with no benefit.
+1. **Document S5 as a semantic anti-pattern** in `docs/md/loops.md` — prerequisite for
+   everything else. Users replacing all items with new IDs should not use `key`. Add a
+   guidance table row: "Replace entire list with new IDs → omit `key`."
 
-2. **Implement Opt 2** (prefix/suffix sync) for the most common real-world patterns
-   (append, prepend, update-in-place). This is the highest-value improvement with moderate effort.
+2. **Decide the animation-enter policy** for Opt 5 before any code is written.
+   Option A: suppress enter animation for would-be-survivors cleared by the bailout (requires
+   passing a flag or a survivor-set to the create phase). Option B: accept that enter
+   animation fires for all recreated nodes and document it. Option A is less surprising but
+   more complex; Option B ships faster.
 
-3. **Run a threshold sweep benchmark** for Opt 5 before implementing. The benchmark should
-   test overlap = 0%, 10%, 20%, 30%, 50% at n = 50, 200, 500 and identify the threshold
-   that minimizes total cost across all overlap levels. Only implement if the data is clear.
+3. **Run a threshold sweep benchmark** (extend `__benchmarks__/keyed-vs-rebuild.bench.spec.ts`)
+   at overlap = 0%, 5%, 10%, 15%, 20%, 30%, 50% × n = 50, 200, 500 × threshold = 0.05, 0.10,
+   0.15, 0.20. Confirm the empirical break-even fraction and validate that threshold = 0.10
+   beats full-rebuild in the sub-13% range without regressing S1–S4 by more than 5%.
 
-4. **Do not implement Opt 3 or Opt 4** — real-browser evidence shows S2 is not a problem
-   in production. Adding LIS complexity would be pure overhead.
+4. **Implement Opt 5** only if the benchmark sweep produces clear evidence. Use threshold
+   = 0.10 with the early-exit scan. Apply to `reconcileItems` (each) first; port to
+   `reconcileForeachItems` (foreach) as a follow-up after validation.
+
+5. **Implement Opt 2** (prefix/suffix sync) after Opt 5 is resolved. Highest-value
+   improvement for common real-world append/prepend/update patterns.
+
+6. **Do not implement Opt 3 or Opt 4** — real-browser evidence shows S2 is not a problem
+   in production. LIS adds O(n log n) complexity with no measurable benefit.
+
+### Key algebraic result to remember
+
+The keyed path breaks even with full-rebuild at **~24% key overlap** (f ≈ 0.22–0.26,
+depending on template complexity). Below that fraction, full-rebuild is cheaper because the
+O(n) key evaluation pass + per-item insertBefore reorder overhead exceeds the savings from
+reusing processTree for the surviving fraction. The overlap-threshold bailout is only net
+positive when f < ~13% (the discard-benefit boundary), which means threshold = 0.10 is the
+practical upper limit for a conservative implementation.
 
 ---
 
