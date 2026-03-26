@@ -66,12 +66,10 @@ All hints are **deduplicated** — if the same URL already has a hint in `<head>
 
 Runtime hints fire after JavaScript executes — too late to help the very first
 page load. For maximum impact on LCP, inject the same hints into the initial
-HTML at build time using the provided post-build script:
+HTML at build time using the `inject-resource-hints` plugin in the CLI:
 
 ```sh
-node scripts/inject-resource-hints.js
-# or with a custom glob:
-node scripts/inject-resource-hints.js "dist/**/*.html"
+nojs prebuild
 ```
 
 Add to `package.json`:
@@ -79,23 +77,22 @@ Add to `package.json`:
 ```json
 {
   "scripts": {
-    "build": "your-bundler && node scripts/inject-resource-hints.js"
+    "build": "your-bundler && nojs prebuild"
   }
 }
 ```
 
-The script scans every `.html` file in `dist/`, parses it with jsdom (already a
-devDependency for tests), and injects the same three hint types listed above.
-Existing hints are never duplicated.
+The plugin scans every `.html` file in the output directory and injects the
+same three hint types listed above. Existing hints are never duplicated.
 
 ### CI/CD integration
 
-Run the script as a post-build step in your pipeline. The `&&` ensures it only
+Run the CLI as a post-build step in your pipeline. The `&&` ensures it only
 runs when the bundler succeeds:
 
 ```sh
 # npm scripts (package.json)
-"build": "your-bundler && node scripts/inject-resource-hints.js"
+"build": "your-bundler && nojs prebuild"
 
 # GitHub Actions
 - name: Build
@@ -105,12 +102,6 @@ runs when the bundler succeeds:
 build:
   script:
     - npm run build
-```
-
-For monorepos or custom output directories, pass a glob explicitly:
-
-```sh
-node scripts/inject-resource-hints.js "public/**/*.html"
 ```
 
 ### Hints and component lifecycle

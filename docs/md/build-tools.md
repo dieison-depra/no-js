@@ -1,8 +1,8 @@
 # Build Tools
 
-No.JS ships two optional post-build scripts that pre-populate `<head>` in
-your generated HTML files. Both scripts are designed to be run after your
-bundler produces the `dist/` directory.
+No.JS integrates with `@erickxavier/nojs-cli` to pre-populate `<head>` in
+your generated HTML files. The CLI prebuild pipeline runs after your bundler
+produces the output directory.
 
 > **Why bother?** No.JS directives run in the browser — on the very first
 > request, a crawler or browser receives HTML whose `<head>` may be empty.
@@ -14,21 +14,21 @@ bundler produces the `dist/` directory.
 > - **LCP / TTFB**: `<link rel="preload">` hints only help if they arrive in
 >   the initial HTML — hints injected by JS fire too late for the first load.
 
-The two scripts are complementary and intended to be run together:
+Use the CLI prebuild command as part of your build pipeline:
 
 ```json
 "scripts": {
-  "build": "node build.js && node scripts/inject-head-attrs.js && node scripts/inject-resource-hints.js"
+  "build": "node build.js && nojs prebuild"
 }
 ```
 
 ---
 
-## `scripts/inject-head-attrs.js`
+## `inject-head-attrs` plugin
 
-**What it does:** Scans every `.html` file in `dist/` and injects or updates
-`<title>`, `<meta name="description">`, `<link rel="canonical">`, and
-`<script type="application/ld+json" data-nojs>` for No.JS head-management
+**What it does:** Scans every `.html` file in the output directory and injects
+or updates `<title>`, `<meta name="description">`, `<link rel="canonical">`,
+and `<script type="application/ld+json" data-nojs>` for No.JS head-management
 directives that contain **static values**.
 
 **Related PRs / features:**
@@ -40,12 +40,14 @@ directives that contain **static values**.
 
 ### Usage
 
-```sh
-# Default: scans dist/**/*.html
-node scripts/inject-head-attrs.js
+Enable in `nojs-prebuild.config.js`:
 
-# Custom glob
-node scripts/inject-head-attrs.js "public/**/*.html"
+```js
+export default {
+  plugins: {
+    'inject-head-attrs': true,
+  },
+}
 ```
 
 ### What is injectable at build time
@@ -77,7 +79,7 @@ them as usual when the page loads.
 <div hidden page-title="product.name + ' | My Store'"></div>
 ```
 
-After the build script runs:
+After the build runs:
 
 ```html
 <head>
@@ -90,7 +92,7 @@ After the build script runs:
 
 ### Route template example (SPA)
 
-For a standard SPA with a single `index.html`, the script uses the root route
+For a standard SPA with a single `index.html`, the plugin uses the root route
 (`route="/"`) as the default page metadata:
 
 ```html
@@ -103,7 +105,7 @@ For a standard SPA with a single `index.html`, the script uses the root route
 </template>
 ```
 
-Resulting `<head>` after the script runs:
+Resulting `<head>` after the build runs:
 
 ```html
 <head>
@@ -118,7 +120,7 @@ Resulting `<head>` after the script runs:
 
 When using a static site generator that produces one HTML file per route (see
 [SSG guide](ssg.md)), each file contains only the relevant `<template route>`
-element. The script processes each file independently:
+element. The plugin processes each file independently:
 
 ```
 dist/
@@ -143,9 +145,9 @@ same element, the **body directive takes precedence**:
 
 ---
 
-## `scripts/inject-resource-hints.js`
+## `inject-resource-hints` plugin
 
-**What it does:** Scans every `.html` file in `dist/` and injects
+**What it does:** Scans every `.html` file in the output directory and injects
 `<link rel="preload">`, `<link rel="preconnect">`, and
 `<link rel="prefetch">` hints for No.JS `get=` directives and remote route
 templates.
@@ -154,36 +156,30 @@ templates.
 
 ### Usage
 
-```sh
-node scripts/inject-resource-hints.js
-
-# Custom glob
-node scripts/inject-resource-hints.js "public/**/*.html"
+```js
+export default {
+  plugins: {
+    'inject-resource-hints': true,
+  },
+}
 ```
 
 See [Resource Hints →](resource-hints.md) for full documentation.
 
 ---
 
-## Dependencies
-
-Both scripts use `jsdom` and `glob`, which are already `devDependencies` in
-`package.json` (used by the test suite). No additional packages are needed.
-
----
-
-## Running both scripts
+## Running the full pipeline
 
 ```json
 {
   "scripts": {
     "build": "node build.js",
-    "postbuild": "node scripts/inject-head-attrs.js && node scripts/inject-resource-hints.js"
+    "postbuild": "nojs prebuild"
   }
 }
 ```
 
-Using `postbuild` ensures the scripts run automatically after every `npm run build`.
+Using `postbuild` ensures the pipeline runs automatically after every `npm run build`.
 
 ---
 
