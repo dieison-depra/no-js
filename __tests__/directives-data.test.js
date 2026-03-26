@@ -3826,13 +3826,6 @@ describe('HTTP directive — skeleton= attribute (M3)', () => {
   test('does not throw when skeleton id does not match any element', async () => {
     fetchMock.mockResolvedValue({
       ok: true, status: 200,
-describe('HTTP directive — resource hints (M7)', () => {
-  beforeEach(() => {
-    document.body.innerHTML = '';
-    document.head.innerHTML = '';
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
       headers: { get: () => 'application/json' },
       json: async () => ({}),
       text: async () => '{}',
@@ -3844,6 +3837,20 @@ describe('HTTP directive — resource hints (M7)', () => {
       processTree(document.body);
       await new Promise(r => setTimeout(r, 30));
     }).not.toThrow();
+  });
+});
+
+describe('HTTP directive — resource hints (M7)', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    document.head.innerHTML = '';
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: { get: () => 'application/json' },
+      json: async () => ({}),
+      text: async () => '{}',
+    });
   });
 
   afterEach(() => {

@@ -1997,11 +1997,13 @@ describe('evaluate — browser globals allow-list', () => {
   // ── Allowed: safe browser globals ──────────────────────────────────────
 
   test('window is accessible', () => {
-    expect(evaluate('window', ctx)).toBe(globalThis.window ?? globalThis);
+    // window is wrapped in a security proxy, so it's not reference-equal to the original
+    expect(evaluate('window', ctx)).not.toBeUndefined();
   });
 
   test('document is accessible', () => {
-    expect(evaluate('document', ctx)).toBe(document);
+    // document is wrapped in a security proxy, so it's not reference-equal to the original
+    expect(evaluate('document', ctx)).not.toBeUndefined();
   });
 
   test('URL is accessible', () => {

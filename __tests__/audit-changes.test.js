@@ -284,22 +284,18 @@ describe('[3] animations.js — fallback timeout behaviour', () => {
 
   test('_animateOut callback fires via fallback timeout when animationend never fires', () => {
     // In JSDOM animationend is never dispatched automatically.
-    // This test documents the current fallback duration (2000 ms).
-    // If the default were changed to 0, the test assertions below must be
-    // updated — making this a sentinel for the animation default value.
+    // fallback = 0 ms: fires on the next event-loop tick when no CSS animation is present,
+    // instead of blocking for an arbitrary duration.
     const el = document.createElement('div');
     el.appendChild(document.createElement('span'));
     document.body.appendChild(el);
 
     const cb = jest.fn();
-    _animateOut(el, 'fadeOut', null, cb); // no durationMs → fallback = 2000 ms
+    _animateOut(el, 'fadeOut', null, cb); // no durationMs → fallback = 0 ms
 
-    expect(cb).not.toHaveBeenCalled();        // not yet — waiting for fallback
+    expect(cb).not.toHaveBeenCalled();    // not yet — waiting for setTimeout(0) tick
 
-    jest.advanceTimersByTime(1999);
-    expect(cb).not.toHaveBeenCalled();        // still not called at 1999 ms
-
-    jest.advanceTimersByTime(1);              // cross the 2000 ms threshold
+    jest.advanceTimersByTime(0);          // cross the 0 ms threshold
     expect(cb).toHaveBeenCalledTimes(1);
   });
 
@@ -413,7 +409,7 @@ describe('[4] loops.js animate-leave — fallback timeout blocks re-render until
     expect(list.children.length).toBe(2);
   });
 
-  test('each with animate-leave falls back to rendering after 2000 ms when animationend never fires', () => {
+  test('each with animate-leave falls back to rendering after 0 ms when animationend never fires', () => {
     _stores.data = { items: [{ id: 1 }] };
     document.body.innerHTML = `
       <template id="item-tpl"><li></li></template>
@@ -426,12 +422,9 @@ describe('[4] loops.js animate-leave — fallback timeout blocks re-render until
     _stores.data.items = [{ id: 2 }, { id: 3 }];
     _notifyStoreWatchers();
 
-    expect(list.children.length).toBe(1); // still old
+    expect(list.children.length).toBe(1); // still old — waiting for setTimeout(0) tick
 
-    jest.advanceTimersByTime(1999);
-    expect(list.children.length).toBe(1); // still old at 1999 ms
-
-    jest.advanceTimersByTime(1);           // 2000 ms reached
+    jest.advanceTimersByTime(0);           // 0 ms reached → fallback fires
     expect(list.children.length).toBe(2); // new items rendered
   });
 });

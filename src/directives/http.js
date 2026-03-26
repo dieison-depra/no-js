@@ -58,12 +58,6 @@ function _injectHints(url) {
   } catch (_) {}
 }
 
-const _SENSITIVE_HEADERS = new Set([
-  'authorization', 'x-api-key', 'x-auth-token', 'cookie',
-  'proxy-authorization', 'set-cookie', 'x-csrf-token',
-]);
-
-
 for (const method of HTTP_METHODS) {
   registerDirective(method, {
     priority: 1,
