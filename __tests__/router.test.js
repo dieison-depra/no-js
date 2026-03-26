@@ -2879,6 +2879,13 @@ describe('Router — focusBehavior (M2)', () => {
         <h1>Form</h1>
         <input autofocus type="text">
     document.title = '';
+
+describe('Router — _injectRoutePrefetchHints (M7)', () => {
+  beforeEach(() => {
+    _config.router = { useHash: true, base: '/', scrollBehavior: 'top' };
+    document.body.innerHTML = '';
+    document.head.innerHTML = '';
+    window.location.hash = '';
   });
 
   afterEach(() => {
@@ -2892,6 +2899,13 @@ describe('Router — focusBehavior (M2)', () => {
       <template route="/about" page-title="'About Us | My Site'">
         <h1>About</h1>
       </template>
+    document.head.innerHTML = '';
+    window.location.hash = '';
+  });
+
+  test('injects prefetch hint for route templates with src=', async () => {
+    document.body.innerHTML = `
+      <template route="/about" src="/pages/about.html"></template>
       <div route-view></div>
     `;
     const router = _createRouter();
@@ -2914,6 +2928,19 @@ describe('Router — focusBehavior (M2)', () => {
       <template route="/products/:id" page-title="'Product ' + $route.params.id + ' | Store'">
         <h1>Product</h1>
       </template>
+    const hint = document.head.querySelector('link[rel="prefetch"][href="/pages/about.html"]');
+    expect(hint).not.toBeNull();
+    expect(hint.getAttribute("as")).toBe('fetch');
+  });
+
+  test('does not inject duplicate hints when already present', async () => {
+    const existing = document.createElement('link');
+    existing.rel = 'prefetch';
+    existing.href = '/pages/about.html';
+    document.head.appendChild(existing);
+
+    document.body.innerHTML = `
+      <template route="/about" src="/pages/about.html"></template>
       <div route-view></div>
     `;
     const router = _createRouter();
@@ -2994,5 +3021,18 @@ describe('Router — useHash SEO warning', () => {
     await router.init();
     await router.push('/no-title');
     expect(document.title).toBe('Original Title');
+    const hints = document.head.querySelectorAll('link[rel="prefetch"][href="/pages/about.html"]');
+    expect(hints.length).toBe(1);
+  });
+
+  test('does not inject hint for route templates without src=', async () => {
+    document.body.innerHTML = `
+      <template route="/inline"><h1>Inline</h1></template>
+      <div route-view></div>
+    `;
+    const router = _createRouter();
+    await router.init();
+    const hint = document.head.querySelector('link[rel="prefetch"]');
+    expect(hint).toBeNull();
   });
 });
