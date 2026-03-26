@@ -6,6 +6,7 @@ let _stylesInjected = false;
 
 function _injectBuiltInStyles() {
   if (_stylesInjected || typeof document === "undefined") return;
+  if (document.querySelector("[data-nojs-animations]")) { _stylesInjected = true; return; }
   _stylesInjected = true;
 
   const css = `

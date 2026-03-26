@@ -42,6 +42,7 @@ registerDirective("if", {
     }
 
     function render(result) {
+      el.removeAttribute("data-nojs-pending");
       _disposeChildren(el);
       if (result) {
         if (thenId) {
@@ -92,6 +93,7 @@ registerDirective("else-if", {
     const originalChildren = [...el.childNodes].map((n) => n.cloneNode(true));
 
     function update() {
+      el.removeAttribute("data-nojs-pending");
       // Check if any preceding if/else-if was true
       let prev = el.previousElementSibling;
       while (prev) {
@@ -146,6 +148,7 @@ registerDirective("else", {
     const originalChildren = [...el.childNodes].map((n) => n.cloneNode(true));
 
     function update() {
+      el.removeAttribute("data-nojs-pending");
       // Check if any preceding if/else-if was true
       let prev = el.previousElementSibling;
       while (prev) {
@@ -196,6 +199,7 @@ registerDirective("show", {
     let currentState = undefined;
 
     function update() {
+      el.removeAttribute("data-nojs-pending");
       const result = !!evaluate(expr, ctx);
       if (result === currentState) return;
       currentState = result;
@@ -227,6 +231,7 @@ registerDirective("hide", {
     let currentState = undefined;
 
     function update() {
+      el.removeAttribute("data-nojs-pending");
       const result = !evaluate(expr, ctx);
       if (result === currentState) return;
       currentState = result;
