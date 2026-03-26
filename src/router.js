@@ -289,23 +289,32 @@ export function _createRouter() {
         _clearDeclared(wrapper);
         processTree(wrapper);
 
-        // Focus management: move focus to the new content when focusBehavior is "auto".
-        // Only applied to the default outlet to avoid fighting with secondary outlets.
-        // Placed here — after the awaits for both the main template and all nested
-        // template[src] loads — so focus fires only after all async content is injected.
-        // Uses requestAnimationFrame so the focus fires after the browser has painted.
-        if (outletName === "default" && _config.router.focusBehavior === "auto") {
-          requestAnimationFrame(() => {
-            const focusTarget =
-              outletEl.querySelector("[autofocus]") ||
-              outletEl.querySelector('[tabindex="-1"]') ||
-              outletEl.querySelector("h1") ||
-              outletEl;
-            if (!focusTarget.hasAttribute("tabindex")) {
-              focusTarget.setAttribute("tabindex", "-1");
-            }
-            focusTarget.focus({ preventScroll: true });
-          });
+        if (outletName === "default") {
+          // page-title: update document.title if the route template declares one.
+          const pageTitleExpr = tpl.getAttribute("page-title");
+          if (pageTitleExpr) {
+            const titleCtx = createContext({}, null);
+            titleCtx.__raw.$route = current;
+            titleCtx.__raw.$store = _stores;
+            const title = evaluate(pageTitleExpr, titleCtx);
+            if (title != null) document.title = String(title);
+          }
+
+          // Focus management: move focus to the new content when focusBehavior is "auto".
+          // Placed after all awaits so focus fires only after all async content is injected.
+          if (_config.router.focusBehavior === "auto") {
+            requestAnimationFrame(() => {
+              const focusTarget =
+                outletEl.querySelector("[autofocus]") ||
+                outletEl.querySelector('[tabindex="-1"]') ||
+                outletEl.querySelector("h1") ||
+                outletEl;
+              if (!focusTarget.hasAttribute("tabindex")) {
+                focusTarget.setAttribute("tabindex", "-1");
+              }
+              focusTarget.focus({ preventScroll: true });
+            });
+          }
         }
       } else if (!matched || tpl?.__loadFailed) {
         // No route matched and no wildcard — inject built-in 404
