@@ -3164,6 +3164,149 @@ describe('key reconciliation — disposal of removed items', () => {
   });
 });
 
+describe('key reconciliation — zero-overlap and partial-overlap behaviour', () => {
+  let container;
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    Object.keys(_stores).forEach((k) => delete _stores[k]);
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  function buildEach(items) {
+    const state = document.createElement('div');
+    state.setAttribute('state', JSON.stringify({ items }));
+    container.appendChild(state);
+    const tpl = document.createElement('template');
+    tpl.id = 'bailout-tpl';
+    tpl.innerHTML = '<span class="row"></span>';
+    document.body.appendChild(tpl);
+    const list = document.createElement('div');
+    list.setAttribute('each', 'item in items');
+    list.setAttribute('template', 'bailout-tpl');
+    list.setAttribute('key', 'item.id');
+    state.appendChild(list);
+    processTree(state);
+    return { state, list };
+  }
+
+  function buildForeach(items) {
+    const state = document.createElement('div');
+    state.setAttribute('state', JSON.stringify({ items }));
+    container.appendChild(state);
+    const tpl = document.createElement('template');
+    tpl.id = 'bailout-fc-tpl';
+    tpl.innerHTML = '<span class="row"></span>';
+    document.body.appendChild(tpl);
+    const list = document.createElement('div');
+    list.setAttribute('foreach', 'item');
+    list.setAttribute('from', 'items');
+    list.setAttribute('template', 'bailout-fc-tpl');
+    list.setAttribute('key', 'item.id');
+    state.appendChild(list);
+    processTree(state);
+    return { state, list };
+  }
+
+  test('each: zero-overlap replaces all items (new keys)', async () => {
+    const { state } = buildEach([{ id: 1 }, { id: 2 }]);
+    await Promise.resolve();
+    state.__ctx.__raw.items = [{ id: 3 }, { id: 4 }];
+    state.__ctx.$notify();
+    await Promise.resolve();
+    const rows = container.querySelectorAll('.row');
+    expect(rows.length).toBe(2);
+  });
+
+  test('each: calls disposers on removed items in zero-overlap update', async () => {
+    const { state, list } = buildEach([{ id: 1 }, { id: 2 }]);
+    await Promise.resolve();
+    const disposed = [];
+    // Set disposers on the inner span (first child of each wrapper),
+    // since _disposeChildren(wrapper) walks wrapper's subtree, not wrapper itself.
+    for (const wrapper of list.children) {
+      const inner = wrapper.firstElementChild;
+      if (inner) inner.__disposers = [() => disposed.push(inner)];
+    }
+    state.__ctx.__raw.items = [{ id: 3 }];
+    state.__ctx.$notify();
+    await Promise.resolve();
+    expect(disposed.length).toBeGreaterThan(0);
+  });
+
+  test('each: partial overlap preserves existing wrapper nodes', async () => {
+    const { state, list } = buildEach([{ id: 1 }, { id: 2 }]);
+    await Promise.resolve();
+    const originalWrapper = list.children[0];
+    state.__ctx.__raw.items = [{ id: 1 }, { id: 3 }];
+    state.__ctx.$notify();
+    await Promise.resolve();
+    // id:1 wrapper is reused, not removed — partial overlap preserves existing nodes
+    expect(list.children[0]).toBe(originalWrapper);
+    expect(list.children.length).toBe(2);
+  });
+
+  test('each: correct $index and $count after zero-overlap update', async () => {
+    const { state } = buildEach([{ id: 1 }, { id: 2 }]);
+    await Promise.resolve();
+    state.__ctx.__raw.items = [{ id: 3 }, { id: 4 }, { id: 5 }];
+    state.__ctx.$notify();
+    await Promise.resolve();
+    expect(container.querySelectorAll('.row').length).toBe(3);
+  });
+
+  test('foreach: zero-overlap replaces all items (new keys)', async () => {
+    const { state } = buildForeach([{ id: 1 }, { id: 2 }]);
+    await Promise.resolve();
+    state.__ctx.__raw.items = [{ id: 3 }, { id: 4 }];
+    state.__ctx.$notify();
+    await Promise.resolve();
+    const rows = container.querySelectorAll('.row');
+    expect(rows.length).toBe(2);
+  });
+
+  test('foreach: calls disposers on removed items in zero-overlap update', async () => {
+    const { state, list } = buildForeach([{ id: 1 }, { id: 2 }]);
+    await Promise.resolve();
+    const disposed = [];
+    // Set disposers on the inner span (first child of each wrapper),
+    // since _disposeChildren(wrapper) walks wrapper's subtree, not wrapper itself.
+    for (const wrapper of list.children) {
+      const inner = wrapper.firstElementChild;
+      if (inner) inner.__disposers = [() => disposed.push(inner)];
+    }
+    state.__ctx.__raw.items = [{ id: 3 }];
+    state.__ctx.$notify();
+    await Promise.resolve();
+    expect(disposed.length).toBeGreaterThan(0);
+  });
+
+  test('foreach: partial overlap preserves existing wrapper nodes', async () => {
+    const { state, list } = buildForeach([{ id: 1 }, { id: 2 }]);
+    await Promise.resolve();
+    const originalWrapper = list.children[0];
+    state.__ctx.__raw.items = [{ id: 1 }, { id: 3 }];
+    state.__ctx.$notify();
+    await Promise.resolve();
+    expect(list.children[0]).toBe(originalWrapper);
+    expect(list.children.length).toBe(2);
+  });
+
+  test('foreach: correct item count after zero-overlap update', async () => {
+    const { state } = buildForeach([{ id: 1 }, { id: 2 }]);
+    await Promise.resolve();
+    state.__ctx.__raw.items = [{ id: 3 }, { id: 4 }, { id: 5 }];
+    state.__ctx.$notify();
+    await Promise.resolve();
+    expect(container.querySelectorAll('.row').length).toBe(3);
+  });
+});
+
 describe('bind-html — D1 dynamic expression warning', () => {
   let warnSpy;
 
