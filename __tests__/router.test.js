@@ -3275,3 +3275,4 @@ describe('Router — route head attributes (page-title, page-description, page-c
     expect(script.textContent).not.toContain('{$route.params.id}');
   });
 });
+

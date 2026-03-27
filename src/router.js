@@ -369,12 +369,19 @@ export function _createRouter() {
         _clearDeclared(wrapper);
         processTree(wrapper);
 
+        // Update document metadata and move focus (default outlet only)
         if (outletName === "default") {
-          // Update <head> metadata from route template attributes.
+          // Update <head> metadata from route template attributes (page-title, etc.).
+          // page-title accepts both a static string literal and a full No.JS expression:
+          //   page-title="'About Us | Site'"          ← static
+          //   page-title="'Product ' + $route.params.id + ' | Store'"  ← expression
+          // $route and $store are available as implicit variables.
           _applyRouteHeadAttrs(tpl, current);
 
           // Focus management: move focus to the new content when focusBehavior is "auto".
-          // Placed after all awaits so focus fires only after all async content is injected.
+          // Placed after the awaits for both the main template and all nested
+          // template[src] loads — so focus fires only after all async content is injected.
+          // Uses requestAnimationFrame so the focus fires after the browser has painted.
           if (_config.router.focusBehavior === "auto") {
             requestAnimationFrame(() => {
               const focusTarget =
